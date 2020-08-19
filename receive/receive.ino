@@ -56,21 +56,36 @@ void loop()
         }
         Serial.println();
 
-        // Sensor A
-        double tempData_A = 0x0000; // zero out the data
-        tempData_A = (double)(((buf[2] & 0x007F) << 8) + buf[1]);
-        tempData_A = (tempData_A * tempFactor) - 0.01;
-        float celcius_A = tempData_A - 273.15;
-        Serial.print("Celcius Sensor A: ");
-        Serial.println(celcius_A);
+        // canIDs for tire temps are from 0x00 to 0x04
+        if (canID <= 0x04) {
+          // Sensor A
+          double tempData_A = 0x0000; // zero out the data
+          tempData_A = (double)(((buf[2] & 0x007F) << 8) + buf[1]);
+          tempData_A = (tempData_A * tempFactor) - 0.01;
+          float celcius_A = tempData_A - 273.15;
+          Serial.print("Celcius Sensor A: ");
+          Serial.println(celcius_A);
+  
+          // Sensor B
+          double tempData_B = 0x0000; // zero out the data
+          tempData_B = (double)(((buf[6] & 0x007F) << 8) + buf[5]);
+          tempData_B = (tempData_B * tempFactor) - 0.01;
+          float celcius_B = tempData_B - 273.15;
+          Serial.print("Celcius Sensor B: ");
+          Serial.println(celcius_B);
+        }
 
-        // Sensor B
-        double tempData_B = 0x0000; // zero out the data
-        tempData_B = (double)(((buf[6] & 0x007F) << 8) + buf[5]);
-        tempData_B = (tempData_B * tempFactor) - 0.01;
-        float celcius_B = tempData_B - 273.15;
-        Serial.print("Celcius Sensor B: ");
-        Serial.println(celcius_B);
+        //canID for OBD-II data is 0x05
+        else if (canID == 0x05) {
+          int vehSpeed = 0;
+          int vehSpeed = buf[0];
+          Serial.println(vehSpeed);
+          
+          int rpm = 0;
+          int rpm = word(buf[1], buf[2]);
+          Serial.println(rpm);
+          
+        }
     }
     else {
         Serial.println("No Message");
