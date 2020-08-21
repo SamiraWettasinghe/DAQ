@@ -42,13 +42,6 @@ void loop()
         CAN.readMsgBuf(&len, buf); // len: data length, buf: data buffer
         canID = CAN.getCanId();
 
-        Serial.print("CAN ID: ");
-        Serial.print(canID, HEX);
-
-        Serial.print("  Data Length: ");
-        Serial.print(len);
-        Serial.print("  ");
-
         // Print the data one byte at a time
         for (int i = 0; i<len; i++) {
             Serial.print(int(buf[i]));
@@ -77,14 +70,33 @@ void loop()
 
         //canID for OBD-II data is 0x05
         else if (canID == 0x05) {
-          int vehSpeed = 0;
           int vehSpeed = buf[0];
           Serial.println(vehSpeed);
           
-          int rpm = 0;
           int rpm = word(buf[1], buf[2]);
           Serial.println(rpm);
-          
+        }
+
+        // canID for accelerometer is 0x06
+        else if (canID == 0x06) {
+          int AcX = word(buf[0], buf[1]);
+          int AcY = word(buf[2], buf[3]);
+          int AcZ = word(buf[4], buf[5]);
+
+          Serial.print("AcX = "); Serial.print(AcX);
+          Serial.print(" | AcY = "); Serial.print(AcY);
+          Serial.print(" | AcZ = "); Serial.print(AcZ);
+        }
+
+        //canID for gyrometer is 0x07
+        else if (canID == 0x07) {
+          int GyX = word(buf[0], buf[1]);
+          int GyY = word(buf[2], buf[3]);
+          int GyZ = word(buf[4], buf[5]);
+
+          Serial.print("GyX = "); Serial.print(GyX);
+          Serial.print(" | GyY = "); Serial.print(GyY);
+          Serial.print(" | GyZ = "); Serial.println(GyZ);
         }
     }
     else {
