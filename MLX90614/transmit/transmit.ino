@@ -15,6 +15,9 @@ https://protosupplies.com/product/mcp2515-can-bus-interface-module/
 MCP_CAN CAN(10);
 byte data[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
+unsigned long time;
+byte timeBuffer[4] = {0, 0, 0, 0};
+
 void setup()
 {
     Serial.begin(115200);
@@ -64,15 +67,21 @@ void loop()
     pec_B = i2c_readNak();
     i2c_stop();
 
+    time = millis();
+    timeBuffer[0] = time;
+    timeBuffer[1] = time >> 8;
+    timeBuffer[2] = time >> 16;
+    timeBuffer[3] = time >> 24;
+
     // send data over CAN
-    data[0] = (byte)dev_A;
-    data[1] = (byte)data_low_A;
-    data[2] = (byte)data_high_A;
-    data[3] = (byte)pec_A;
-    data[4] = (byte)dev_B;
-    data[5] = (byte)data_low_B;
-    data[6] = (byte)data_high_B;
-    data[7] = (byte)pec_B;
+    data[0] = (byte)timeBuffer[0];
+    data[1] = (byte)timeBuffer[1];
+    data[2] = (byte)timeBuffer[2];
+    data[3] = (byte)timeBuffer[3];
+    data[4] = (byte)data_low_A;
+    data[5] = (byte)data_high_A;
+    data[6] = (byte)data_low_B;
+    data[7] = (byte)data_high_B;
 
     // CAN.sendMsgBuf(msg ID, standard frame, # of data bytes, data array)
     CAN.sendMsgBuf(0x01, 0, 8, data);

@@ -20,6 +20,15 @@ int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
 File myFile;
 const int chipSelect = 11;
 
+unsigned long time=0;
+unsigned long ttsHighWord=0;
+unsigned long ttsLowWord=0;
+unsigned long ttsTime=0;
+unsigned long millisec=0;
+unsigned long tseconds=0;
+unsigned long tminutes=0;
+unsigned long seconds=0;
+
 void setup()
 {
   // Set up i2c comms
@@ -44,7 +53,7 @@ void setup()
   Serial.println("SD Initialization Complete!");
   myFile = SD.open("stuff.csv", FILE_WRITE);
   if (myFile) {
-    myFile.println("stuff,stuff,stuff");
+    myFile.println("Minutes,Seconds,Milliseconds,FL Outer,FL Inner,FR Outer,FR Inner,RL Inner,RL Outer,RR Inner,RR Outer,AcX,AcY,AcZ,GyX,GyY,GyZ");
   }
   myFile.close();
 
@@ -69,7 +78,7 @@ void loop()
     if (canID == 0x01) {
       // Sensor A
       double tempData_A = 0x0000; // zero out the data
-      tempData_A = (double)(((buf[2] & 0x007F) << 8) + buf[1]);
+      tempData_A = (double)(((buf[5] & 0x007F) << 8) + buf[4]);
       tempData_A = (tempData_A * tempFactor) - 0.01;
       celcius_A = tempData_A - 273.15;
       Serial.print("Celcius Sensor A: ");
@@ -77,11 +86,15 @@ void loop()
 
       // Sensor B
       double tempData_B = 0x0000; // zero out the data
-      tempData_B = (double)(((buf[6] & 0x007F) << 8) + buf[5]);
+      tempData_B = (double)(((buf[7] & 0x007F) << 8) + buf[6]);
       tempData_B = (tempData_B * tempFactor) - 0.01;
       celcius_B = tempData_B - 273.15;
       Serial.print("Celcius Sensor B: ");
       Serial.println(celcius_B);
+
+      ttsHighWord = word(buf[0], buf[1]);
+      ttsLowWord = word(buf[2], buf[3]);
+      ttsTime = ttsHighWord << 16 | ttsLowWord;
     }
   }
   else {
@@ -105,6 +118,14 @@ void loop()
 
   myFile = SD.open("stuff.csv", FILE_WRITE);
   if (myFile) {
+      time = millis();
+      convertTime(time);
+      myFile.print(tminutes);
+      myFile.print(",");
+      myFile.print(seconds);
+      myFile.print(",");
+      myFile.print(millisec);
+      myFile.print(",");
       myFile.print(AcX);
       myFile.print(",");
       myFile.print(AcY);
@@ -117,11 +138,17 @@ void loop()
       myFile.print(",");
       myFile.print(GyZ);
       myFile.println();
-      Serial.println("here");
   }
   myFile.close();
 
-  Serial.println("here2");
-
   delay(10);
 }
+
+void convertTime(unsigned long times)
+{
+  millisec  = times % 1000;
+  tseconds = times / 1000;
+  tminutes = tseconds / 60;
+  seconds = tseconds % 60;
+}
+ 
