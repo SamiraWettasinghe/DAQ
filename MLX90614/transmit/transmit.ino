@@ -85,5 +85,5 @@ void loop()
 
     // CAN.sendMsgBuf(msg ID, standard frame, # of data bytes, data array)
     CAN.sendMsgBuf(0x01, 0, 8, data);
-    delay(100);
+    delay(2);
 }
