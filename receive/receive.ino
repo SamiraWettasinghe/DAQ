@@ -2,12 +2,13 @@
 #include <Wire.h>
 #include <SD.h>
 #include <SPI.h>
+#include "TinyGPS++.h"
 
-// CAN Variables
+// CAN TIre Temp Variables
 MCP_CAN CAN(10);
-unsigned char len = 0; // length of received buffer
-unsigned char buf[8]; // 8 byte buffer
-unsigned int canID; // CAN Message ID
+unsigned char len = 0;
+unsigned char buf[8];
+unsigned int canID;
 const double tempFactor = 0.02;
 
 // Assume sensor A is outer and sensor B is inner
@@ -19,6 +20,8 @@ float celcius_RL_A = 0.0;
 float celcius_RL_B = 0.0;
 float celcius_RR_A = 0.0;
 float celcius_RR_B = 0.0;
+double tempData_A = 0x000;
+double tempData_B = 0x000;
 
 // Accelerometer Variables
 const int MPU_addr = 0x68;
@@ -40,10 +43,30 @@ unsigned long ttsTime_FL;
 unsigned long ttsTime_FR;
 unsigned long ttsTime_RL;
 unsigned long ttsTime_RR;
-const unsigned long tol = 50;
+
+// set to zero if you want to skip the SD storage
+const unsigned long tol = 0;
 
 // set to true if you want to skip the coherency check
-const boolean verbose = false;
+const boolean verbose = true;
+
+// OBD-II Variables
+char rxData[20];
+char rxIndex = 0;
+int vehSpeed = 0;
+int rpm = 0;
+int tps = 0;
+const boolean isOBD = false;
+
+// GPS Variables
+TinyGPSPlus gps;
+const boolean isGPS = true;
+float lat;
+float lng;
+unsigned long gpsTime;
+float gpsSpeed;
+float alt;
+unsigned long satellites;
 
 void setup()
 {
@@ -69,7 +92,7 @@ void setup()
   Serial.println("SD Initialization Complete!");
   myFile = SD.open("stuff.csv", FILE_WRITE);
   if (myFile) {
-    myFile.println("Minutes,Seconds,Milliseconds,FL Outer,FL Inner,FR Outer,FR Inner,RL Outer,RL Inner,RR Outer,RR Inner,AcX,AcY,AcZ,GyX,GyY,GyZ");
+    myFile.println("Minutes,Seconds,Milliseconds,FL Outer,FL Inner,FR Outer,FR Inner,RL Outer,RL Inner,RR Outer,RR Inner,AcX,AcY,AcZ,GyX,GyY,GyZ,Satellites,Lat,Long,GPS Speed");
   }
   myFile.close();
 
@@ -81,19 +104,48 @@ void setup()
     delay(2000);
   }
   Serial.println("CAN Shield Initialized");
-  delay(2000);
+
+  // OBD-II setup
+  if (isOBD) {
+    Serial1.begin(9600);
+    Serial.println("Setting up OBD Comms...");
+    delay(1500);
+    Serial1.println("ATZ");
+    delay(2000);
+    Serial1.flush();
+    Serial.print("OBD Comms Set");
+    delay(2000);
+  }
+
+  // GPS Setup
+  if (isGPS) {
+    Serial2.begin(9600);
+    Serial.println("GPS Start");
+    delay(2000);
+  }
 }
 
 void loop()
 {
+  // Read Tire Temps over CAN
   if (CAN.checkReceive() == 3) { // 3 Means CAN_MSGAVAIL
     CAN.readMsgBuf(&len, buf); // len: data length, buf: data buffer
     canID = CAN.getCanId();
 
+    tempData_A = 0x0000; // zero out the data
+    tempData_A = (double)(((buf[5] & 0x007F) << 8) + buf[4]);
+    tempData_A = (tempData_A * tempFactor) - 0.01;
+
+    tempData_B = 0x0000;
+    tempData_B = (double)(((buf[7] & 0x007F) << 8) + buf[6]);
+    tempData_B = (tempData_B * tempFactor) - 0.01;
+
     // canIDs for tire temps are from 0x00 to 0x04
     // Front Left
     if (canID == 0x01) {
-      celcius_FL_A, celcius_FL_B = ttsSense();
+      celcius_FL_A = tempData_A - 273.15;
+      celcius_FL_B = tempData_B - 273.15;
+      
       Serial.print("Celcius Sensor FL A: ");
       Serial.println(celcius_FL_A);
       Serial.print("Celcius Sensor FL B: ");
@@ -106,7 +158,9 @@ void loop()
 
     // Front Right
     else if (canID == 0x02) {
-      celcius_FR_A, celcius_FR_B = ttsSense();
+      celcius_FR_A = tempData_A - 273.15;
+      celcius_FR_B = tempData_B - 273.15;
+      
       Serial.print("Celcius Sensor FR A: ");
       Serial.println(celcius_FR_A);
       Serial.print("Celcius Sensor FR B: ");
@@ -119,7 +173,9 @@ void loop()
 
     // Right Left
     else if (canID == 0x03) {
-      celcius_RL_A, celcius_RL_B = ttsSense();
+      celcius_RL_A = tempData_A - 273.15;
+      celcius_RL_B = tempData_B - 273.15;
+      
       Serial.print("Celcius Sensor RL A: ");
       Serial.println(celcius_RL_A);
       Serial.print("Celcius Sensor RL B: ");
@@ -132,7 +188,9 @@ void loop()
 
     // Rear Right
     else if (canID == 0x04) {
-      celcius_RR_A, celcius_RR_B = ttsSense();
+      celcius_RR_A = tempData_A - 273.15;
+      celcius_RR_B = tempData_B - 273.15;
+      
       Serial.print("Celcius Sensor RR A: ");
       Serial.println(celcius_RR_A);
       Serial.print("Celcius Sensor RR B: ");
@@ -147,6 +205,7 @@ void loop()
     // Serial.println("No CAN Message");
   }
 
+  // Read Accelerometer
   Wire.beginTransmission(MPU_addr);
   Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
   Wire.endTransmission(false);
@@ -162,45 +221,103 @@ void loop()
   GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
   GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
 
+  // Read OBD data
+  if (isOBD) {
+    Serial1.flush();
+    Serial1.println("010D"); // vehicle speed PID
+    getResponse();
+    getResponse();
+    vehSpeed = strtol(&rxData[6],0,16);
+    Serial.print("Speed: ");
+    Serial.print(vehSpeed);
+  
+    Serial1.flush();
+    Serial1.println("010C"); // vehicle rpm PID
+    getResponse();
+    getResponse();
+    rpm = ((strtol(&rxData[6],0,16)*256)+strtol(&rxData[9],0,16))/4;
+    Serial.print(" RPM: ");
+    Serial.print(rpm);
+    Serial.println();
+  }
+
+  // Read GPS
+  if (isGPS) {
+    Serial2.flush();
+    while (Serial2.available() > 0) {
+      gps.encode(Serial2.read());
+    }
+
+    if (gps.location.isUpdated()) {
+      if (gps.satellites.value() > 0) {
+        satellites = gps.satellites.value();
+        gpsTime = gps.time.value();
+        lat = (gps.location.lat(), 6);
+        lng = (gps.location.lng(), 6);
+        alt = gps.altitude.meters();
+        gpsSpeed = gps.speed.kmph();
+        Serial.print(satellites);
+        Serial.print(",");
+        Serial.print(gps.location.lat(), 6);
+        Serial.print(",");
+        Serial.print(gps.location.lng(), 6);
+        Serial.println();
+      }
+      else {
+        Serial.println("Connecting...");
+      }
+    }
+  }
+
+  // TODO: Coherency check on GPS Time
+  // TODO: Test if coherency checks work
   if (isCoherent() || verbose) {
     myFile = SD.open("stuff.csv", FILE_WRITE);
     if (myFile) {
-        time = millis();
-        convertTime(time);
-        myFile.print(tminutes);
-        myFile.print(",");
-        myFile.print(seconds);
-        myFile.print(",");
-        myFile.print(millisec);
-        myFile.print(",");
-        myFile.print(celcius_FL_A);
-        myFile.print(",");
-        myFile.print(celcius_FL_B);
-        myFile.print(",");
-        myFile.print(celcius_FR_A);
-        myFile.print(",");
-        myFile.print(celcius_FR_B);
-        myFile.print(",");
-        myFile.print(celcius_RL_A);
-        myFile.print(",");
-        myFile.print(celcius_RL_B);
-        myFile.print(",");
-        myFile.print(celcius_RR_A);
-        myFile.print(",");
-        myFile.print(celcius_RR_B);
-        myFile.print(",");
-        myFile.print(AcX);
-        myFile.print(",");
-        myFile.print(AcY);
-        myFile.print(",");
-        myFile.print(AcZ);
-        myFile.print(",");
-        myFile.print(GyX);
-        myFile.print(",");
-        myFile.print(GyY);
-        myFile.print(",");
-        myFile.print(GyZ);
-        myFile.println();
+      time = millis();
+      convertTime(time);
+      myFile.print(tminutes);
+      myFile.print(",");
+      myFile.print(seconds);
+      myFile.print(",");
+      myFile.print(millisec);
+      myFile.print(",");
+      myFile.print(celcius_FL_A);
+      myFile.print(",");
+      myFile.print(celcius_FL_B);
+      myFile.print(",");
+      myFile.print(celcius_FR_A);
+      myFile.print(",");
+      myFile.print(celcius_FR_B);
+      myFile.print(",");
+      myFile.print(celcius_RL_A);
+      myFile.print(",");
+      myFile.print(celcius_RL_B);
+      myFile.print(",");
+      myFile.print(celcius_RR_A);
+      myFile.print(",");
+      myFile.print(celcius_RR_B);
+      myFile.print(",");
+      myFile.print(AcX);
+      myFile.print(",");
+      myFile.print(AcY);
+      myFile.print(",");
+      myFile.print(AcZ);
+      myFile.print(",");
+      myFile.print(GyX);
+      myFile.print(",");
+      myFile.print(GyY);
+      myFile.print(",");
+      myFile.print(GyZ);
+      myFile.print(",");
+      myFile.print(satellites);
+      myFile.print(",");
+      myFile.print(lat, 6);
+      myFile.print(",");
+      myFile.print(lng, 6);
+      myFile.print(",");
+      myFile.print(gpsSpeed, 3);
+      myFile.println();
     }
     myFile.close();
   }
@@ -208,34 +325,31 @@ void loop()
   delay(2);
 }
 
+void getResponse(void) {
+  char inChar=0;
+  
+  while(inChar != '\r'){
+    if(Serial1.available() > 0){
+      if(Serial1.peek() == '\r'){
+        inChar=Serial1.read();
+        rxData[rxIndex]='\0';
+        rxIndex=0;
+      }
+      else{
+        inChar = Serial1.read();
+        rxData[rxIndex++]=inChar;
+      }
+    }
+  }
+}
+
+
 void convertTime(unsigned long times)
 {
   millisec  = times % 1000;
   tseconds = times / 1000;
   tminutes = tseconds / 60;
   seconds = tseconds % 60;
-}
- 
-float ttsSense()
-{
-  float celcius_A;
-  float celcius_B;
-  double tempData_A = 0x000;
-  double tempData_B = 0x000;
-
-  // Sensor A
-  tempData_A = 0x0000; // zero out the data
-  tempData_A = (double)(((buf[5] & 0x007F) << 8) + buf[4]);
-  tempData_A = (tempData_A * tempFactor) - 0.01;
-  celcius_A = tempData_A - 273.15;
-
-  // Sensor B
-  tempData_B = 0x0000;
-  tempData_B = (double)(((buf[7] & 0x007F) << 8) + buf[6]);
-  tempData_B = (tempData_B * tempFactor) - 0.01;
-  celcius_B = tempData_B - 273.15;
-
-  return celcius_A, celcius_B;
 }
 
 boolean isCoherent() {

@@ -1,11 +1,9 @@
 /*
-Transmit node transmit data from nano to mega.
+Transmit node transmit data from tire temp nanos to mega.
 
 TODO:
 - Read sensor data
-- Read data from three sensors
 - Send sensor data 
-https://protosupplies.com/product/mcp2515-can-bus-interface-module/
 */
 
 #include <SPI.h>
@@ -18,9 +16,12 @@ byte data[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 unsigned long time;
 byte timeBuffer[4] = {0, 0, 0, 0};
 
+int dev_A = 0x3A << 1; // address location sensor 1
+int dev_B = 0x4B << 1; // address location sesnor 2
+
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(9600);
     Serial.println("Setup...");
 
     while (CAN_OK != CAN.begin(CAN_500KBPS))
@@ -46,9 +47,6 @@ void loop()
     int data_low_B = 0;
     int pec_B = 0;
 
-    int dev_A = 0x55 << 1; // address location sensor 1
-    int dev_B = 0x3B << 1; // address location sesnor 2
-
     // read sensor 1
     i2c_start_wait(dev_A + I2C_WRITE);
     i2c_write(0x07); // RAM location of Tobj1
@@ -57,6 +55,9 @@ void loop()
     data_high_A = i2c_readAck();
     pec_A = i2c_readNak();
     i2c_stop();
+    Serial.print("A ");
+    Serial.print(data_low_A);
+    Serial.println();
 
     // read sensor 2
     i2c_start_wait(dev_B + I2C_WRITE);
@@ -66,6 +67,9 @@ void loop()
     data_high_B = i2c_readAck();
     pec_B = i2c_readNak();
     i2c_stop();
+    Serial.print("B ");
+    Serial.print(data_low_B);
+    Serial.println();
 
     time = millis();
     timeBuffer[0] = time;
