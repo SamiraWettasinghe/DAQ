@@ -1,6 +1,4 @@
 /* OBD2 UART Interface Code */
-#include <SPI.h>
-#include <mcp_can.h>
 
 char rxData[20];
 char rxIndex = 0;
@@ -9,52 +7,40 @@ int vehSpeed = 0;
 int rpm = 0;
 int tps = 0;
 
-MCP_CAN CAN(10);
-byte high = 0x00;
-byte low = 0x00;
-byte data[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-
 void setup() {
+  Serial.begin(9600);
+  delay(1000);
+  Serial.println("Start");
 
   /* Set up OBD-II Comms */
-  Serial.begin(9600);
+  Serial1.begin(9600);
   delay(1500);
-  Serial.println("ATZ");
+  Serial1.println("ATZ");
   delay(2000);
-  Serial.flush();
-
-  /* Set up Mega CAN Comms */
-  while (CAN_OK != CAN.begin(CAN_500KBPS))
-  {
-    // do nothing
-    delay (2000);
-  }
+  Serial1.flush();
 }
 
 void loop() {
-  Serial.flush();
-  Serial.println("010D"); // vehicle speed PID
+  Serial1.flush();
+  Serial1.println("010D"); // vehicle speed PID
   getResponse();
   getResponse();
 
   vehSpeed = strtol(&rxData[6],0,16);
   delay(100);
+  Serial.print("Speed: ");
+  Serial.print(vehSpeed);
 
-  Serial.flush();
-  Serial.println("010C"); // vehicle RPM
+  Serial1.flush();
+  Serial1.println("010C"); // vehicle RPM
   getResponse();
   getResponse();
   
   rpm = ((strtol(&rxData[6],0,16)*256)+strtol(&rxData[9],0,16))/4; // RPM is two bytes long
   delay(100);
-
-  // send data over CAN
-  data[0] = (byte)vehSpeed;
-  data[1] = highByte(rpm);
-  data[2] = lowByte(rpm);
-
-  CAN.sendMsgBuf(0x05, 0, 8, data);
-  delay(100);
+  Serial.print(" RPM: ");
+  Serial.print(rpm);
+  Serial.println();
 }
 
 /* The getResponse function collects incoming data from the UART into the rxData buffer

@@ -92,7 +92,7 @@ void setup()
   Serial.println("SD Initialization Complete!");
   myFile = SD.open("stuff.csv", FILE_WRITE);
   if (myFile) {
-    myFile.println("Minutes,Seconds,Milliseconds,FL Outer,FL Inner,FR Outer,FR Inner,RL Outer,RL Inner,RR Outer,RR Inner,AcX,AcY,AcZ,GyX,GyY,GyZ,Satellites,Lat,Long,GPS Speed");
+    myFile.println("Minutes,Seconds,Milliseconds,FL Outer,FL Inner,FR Outer,FR Inner,RL Outer,RL Inner,RR Outer,RR Inner,AcX,AcY,AcZ,GyX,GyY,GyZ,Satellites,Lat,Long,GPS Speed,Vehicle Speed,RPM");
   }
   myFile.close();
 
@@ -109,12 +109,14 @@ void setup()
   if (isOBD) {
     Serial1.begin(9600);
     Serial.println("Setting up OBD Comms...");
-    delay(1500);
-    Serial1.println("ATZ");
     delay(2000);
-    Serial1.flush();
+    Serial1.print("ATZ\r");
+    delay(2);
+    OBD_read();
+    Serial1.print("ATE0\r");
+    OBD_read();
     Serial.print("OBD Comms Set");
-    delay(2000);
+    delay(3000);
   }
 
   // GPS Setup
@@ -223,22 +225,14 @@ void loop()
 
   // Read OBD data
   if (isOBD) {
-    Serial1.flush();
-    Serial1.println("010D"); // vehicle speed PID
-    getResponse();
-    getResponse();
-    vehSpeed = strtol(&rxData[6],0,16);
-    Serial.print("Speed: ");
-    Serial.print(vehSpeed);
-  
-    Serial1.flush();
-    Serial1.println("010C"); // vehicle rpm PID
-    getResponse();
-    getResponse();
-    rpm = ((strtol(&rxData[6],0,16)*256)+strtol(&rxData[9],0,16))/4;
-    Serial.print(" RPM: ");
-    Serial.print(rpm);
-    Serial.println();
+    rpm = getRPM();
+    vehSpeed = getSPEED();
+    Serial.print("S:");
+    Serial.print (vehSpeed);
+    Serial.print (",");
+    Serial.print("R:");
+    Serial.println (rpm);
+    Serial.flush();
   }
 
   // Read GPS
@@ -298,17 +292,17 @@ void loop()
       myFile.print(",");
       myFile.print(celcius_RR_B);
       myFile.print(",");
-      myFile.print(AcX);
+      myFile.print((float)AcX/16384), 3;
       myFile.print(",");
-      myFile.print(AcY);
+      myFile.print((float)AcY/16384, 3);
       myFile.print(",");
-      myFile.print(AcZ);
+      myFile.print((float)AcZ/16384, 3);
       myFile.print(",");
-      myFile.print(GyX);
+      myFile.print((float)GyX/131, 3);
       myFile.print(",");
-      myFile.print(GyY);
+      myFile.print((float)GyY/131, 3);
       myFile.print(",");
-      myFile.print(GyZ);
+      myFile.print((float)GyZ/131, 3);
       myFile.print(",");
       myFile.print(satellites);
       myFile.print(",");
@@ -317,32 +311,55 @@ void loop()
       myFile.print(lng, 6);
       myFile.print(",");
       myFile.print(gpsSpeed, 3);
+      myFile.print(",");
+      myFile.print(vehSpeed);
+      myFile.print(",");
+      myFile.print(rpm);
       myFile.println();
+      Serial.println("Logging...");
     }
     myFile.close();
   }
 
-  delay(2);
+  delay(20);
 }
 
-void getResponse(void) {
-  char inChar=0;
-  
-  while(inChar != '\r'){
-    if(Serial1.available() > 0){
-      if(Serial1.peek() == '\r'){
-        inChar=Serial1.read();
-        rxData[rxIndex]='\0';
-        rxIndex=0;
-      }
-      else{
-        inChar = Serial1.read();
-        rxData[rxIndex++]=inChar;
+void OBD_read(void)
+{
+  char c;
+  do {
+    if (Serial1.available() > 0)
+    {
+      c = Serial1.read();
+      if ((c != '>') && (c != '\r') && (c != '\n')) // Keep these out of our buffer
+      {
+        rxData[rxIndex++] = c; //Add whatever we receive to the buffer
       }
     }
-  }
+  } while (c != '>'); //  The ELM327 ends its response with this char so when we get it we exit out.
+  rxData[rxIndex++] = '\0'; // Converts the array into a string
+  rxIndex = 0; // Set this to 0 so next time we call the read we get a "clean buffer"
 }
 
+int getRPM(void)
+{
+  //Query the OBD-II-UART for the Vehicle rpm
+  Serial1.flush();
+  Serial1.print("010C\r");
+  OBD_read();
+
+  return ((strtol(&rxData[6], 0, 16) * 256) + strtol(&rxData[9], 0, 16)) / 4;
+}
+
+int getSPEED(void)
+{
+  //Query the OBD-II-UART for the vehicle speed
+  Serial1.flush();
+  Serial1.print("010D\r");
+  OBD_read();
+
+  return strtol(&rxData[6], 0, 16);
+}
 
 void convertTime(unsigned long times)
 {
