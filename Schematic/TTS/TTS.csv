@@ -1,0 +1,15 @@
+Reference, Quantity, Value, Footprint, Datasheet
+A1 ,2,15 pin header,15 pin male header,https://www.digikey.ca/en/products/detail/adam-tech/PH1-15-UA/9830359
+A1 ,1,Nano,Arduino Nano,
+C1 C2 C3 ,3,0.1uF,Capacitor_THT:C_Rect_L4.0mm_W2.5mm_P2.50mm,https://www.digikey.ca/en/products/detail/FG18X7R1H104KNT06/445-173265-1-ND/5811870?itemSeq=342025158
+D1 D2 ,2,D_Zener,TTS-UART:DO204-10,https://www.digikey.ca/en/products/detail/SA5.0A/SA5.0ALFCT-ND/407681?itemSeq=342025929
+D3 ,1,D,Diode_THT:D_T-1_P5.08mm_Horizontal,https://www.digikey.ca/en/products/detail/1N4148/1N4148FS-ND/458603?itemSeq=342025150
+D4 ,1,RED,digikey-kicad-library:LED_3mm_Radial,https://www.digikey.ca/en/products/detail/QBL8R30C/1516-QBL8R30C-ND/10441160?itemSeq=342025151
+J1 ,1,Screw_Terminal_01x04,"TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-4-5.0-H_1x04_P5.00mm_Horizontal",https://www.digikey.ca/en/products/detail/1935187/277-1579-ND/568616?itemSeq=342647290
+J2 J3 ,2,Conn_01x15_Female,Connector_PinHeader_2.54mm:PinHeader_1x15_P2.54mm_Vertical,https://www.digikey.ca/en/products/detail/PPTC151LFBN-RC/S7013-ND/810153?itemSeq=342025195
+R2 R3 ,2,4.7k,Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal,https://www.digikey.ca/en/products/detail/MRS16000C4701FCT00/BC3940CT-ND/7351370?itemSeq=342025196
+R1 R4 R5 R6 R7 ,5,100,Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal,https://www.digikey.ca/en/products/detail/RSMF1JTR100/RSMF1JTR100CT-ND/2021749?itemSeq=342025157
+SW1 ,1,SW_DIP_x04,Button_Switch_THT:SW_DIP_SPSTx04_Slide_9.78x12.34mm_W7.62mm_P2.54mm,https://www.digikey.ca/en/products/detail/KG04ET/2449-KG04ET-ND/12503505?itemSeq=342025155
+U1 ,1,ISL81487EIPZ,TTS-UART:ISL81487EIPZ-PDIP,https://www.digikey.ca/en/products/detail/ISL81487EIPZ/ISL81487EIPZ-ND/1064974?itemSeq=342025156
+U2 U3 ,2,MLX90614,TTS-UART:MLX90614ESF-BCC-000-TU,https://www.digikey.ca/en/products/detail/MLX90614ESF-BCC-000-TU/MLX90614ESF-BCC-000-TU-ND/3641019?itemSeq=342025153
+-,1,Panel Connectors,Panel MINI connector,https://www.digikey.ca/en/products/detail/21004515-06/2150-21004515-06-ND/10293605?itemSeq=342643639

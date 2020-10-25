@@ -1,0 +1,21 @@
+Reference, Quantity, Value, Footprint, Datasheet
+C1 ,1,0.1uF,Capacitor_THT:C_Rect_L4.0mm_W2.5mm_P2.50mm,https://www.digikey.ca/en/products/detail/FG18X7R1H104KNT06/445-173265-1-ND/5811870?itemSeq=342025158
+D1 D2 ,2,D_Zener,TTS-UART:DO204-10,https://www.digikey.ca/en/products/detail/SA5.0A/SA5.0ALFCT-ND/407681?itemSeq=342025929
+D3 ,1,D,Diode_THT:D_T-1_P5.08mm_Horizontal,https://www.digikey.ca/en/products/detail/1N4148/1N4148FS-ND/458603?itemSeq=342025150
+D4 ,1,RED,digikey-kicad-library:LED_3mm_Radial,https://www.digikey.ca/en/products/detail/QBL8R30C/1516-QBL8R30C-ND/10441160?itemSeq=342025151
+J1 J2 J3 J4 ,4,Mini-DIN-4,TTS-UART:KMDGX-4S-BS,https://www.digikey.ca/en/products/detail/KMDGX-4S-BS/2092-KMDGX-4S-BS-ND/9990073?itemSeq=342025152
+J12 ,1,Conn_02x18_Odd_Even,Connector_PinSocket_2.54mm:PinSocket_2x18_P2.54mm_Vertical,https://www.digikey.ca/en/products/detail/PPTC182LFBN-RC/S7086-ND/810224?itemSeq=342786305
+J10 J11 J13 J14 J15 ,5,Conn_01x08,Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical,https://www.digikey.ca/en/products/detail/adam-tech/RS1-08-G/9832056
+J16 ,1,Conn_01x10,Connector_PinSocket_2.54mm:PinSocket_1x10_P2.54mm_Vertical,https://www.digikey.ca/en/products/detail/adam-tech/RS1-10-G/9832059
+J5 ,1,Screw_Terminal_01x02,"TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-5.0-H_1x02_P5.00mm_Horizontal",https://www.digikey.ca/en/products/detail/1729128/277-1247-ND/260615?itemSeq=342359874
+J6 ,1,SF_OBDII,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,https://www.digikey.ca/en/products/detail/PREC003SAAN-RC/S1012EC-03-ND/2774851?itemSeq=342786485
+J7 ,1,GY-521,Onboard_Sensors:GY-521,https://www.digikey.ca/en/products/detail/adam-tech/PH1-08-UA/9830442
+J8 ,1,NEO-6M,Onboard_Sensors:NEO-6M,https://www.digikey.ca/en/products/detail/adam-tech/PH1-04-UA/9829296
+J9 ,1,SD_Card_Module,Onboard_Sensors:SD_Module,https://www.digikey.ca/en/products/detail/PH1-06-UA/2057-PH1-06-UA-ND/9830394?itemSeq=342786591
+R1 ,1,100,Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal,https://www.digikey.ca/en/products/detail/RSMF1JTR100/RSMF1JTR100CT-ND/2021749?itemSeq=342025157
+U1 ,1,ISL81487EIPZ,TTS-UART:ISL81487EIPZ-PDIP,https://www.digikey.ca/en/products/detail/ISL81487EIPZ/ISL81487EIPZ-ND/1064974?itemSeq=342025156
+XA1 ,1,10 pin header,10 pin male header,https://www.digikey.ca/en/products/detail/adam-tech/PH1-10-UA/9830653
+XA1 ,5,8 pin header,8 pin male header,https://www.digikey.ca/en/products/detail/adam-tech/PH1-08-UA/9830442
+XA1 ,1,2x18 pin header,2x18 pin male header,https://www.digikey.ca/en/products/detail/sullins-connector-solutions/PREC018DAAN-RC/2774876
+XA1 ,1,Arduino,Arduino Mega,
+-,1,Panel Connectors,Panel MINI connector,https://www.digikey.ca/en/products/detail/21002615-01/2150-21002615-01-ND/10293594?itemSeq=342603586

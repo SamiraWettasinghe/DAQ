@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name TTS-UART)(type KiCad)(uri ${KIPRJMOD}/Libraries/TTS-UART.pretty)(options "")(descr ""))
+)
