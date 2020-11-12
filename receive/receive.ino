@@ -60,7 +60,7 @@ const boolean isOBD = false;
 
 // GPS Variables
 TinyGPSPlus gps;
-const boolean isGPS = true;
+const boolean isGPS = false;
 float lat;
 float lng;
 unsigned long gpsTime;
@@ -145,28 +145,28 @@ void loop()
     // canIDs for tire temps are from 0x00 to 0x04
     // Front Left
     if (canID == 0x01) {
-      celcius_FL_A = tempData_A - 273.15;
-      celcius_FL_B = tempData_B - 273.15;
+      celcius_FR_A = tempData_A - 273.15;
+      celcius_FR_B = tempData_B - 273.15;
       
       Serial.print("Celcius Sensor FL A: ");
-      Serial.println(celcius_FL_A);
+      Serial.println(celcius_FR_A);
       Serial.print("Celcius Sensor FL B: ");
-      Serial.println(celcius_FL_B);
+      Serial.println(celcius_FR_B);
 
       ttsHighWord = word(buf[0], buf[1]);
       ttsLowWord = word(buf[2], buf[3]);
-      ttsTime_FL = ttsHighWord << 16 | ttsLowWord;
+      ttsTime_FR = ttsHighWord << 16 | ttsLowWord;
     }
 
     // Front Right
     else if (canID == 0x02) {
-      celcius_FR_A = tempData_A - 273.15;
-      celcius_FR_B = tempData_B - 273.15;
+      celcius_FL_A = tempData_A - 273.15;
+      celcius_FL_B = tempData_B - 273.15;
       
       Serial.print("Celcius Sensor FR A: ");
-      Serial.println(celcius_FR_A);
+      Serial.println(celcius_FL_A);
       Serial.print("Celcius Sensor FR B: ");
-      Serial.println(celcius_FR_B);
+      Serial.println(celcius_FL_B);
 
       ttsHighWord = word(buf[0], buf[1]);
       ttsLowWord = word(buf[2], buf[3]);
@@ -222,6 +222,8 @@ void loop()
   GyX = Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
   GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
   GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+
+  Serial.println(AcX);
 
   // Read OBD data
   if (isOBD) {
@@ -321,7 +323,7 @@ void loop()
     myFile.close();
   }
 
-  delay(20);
+  delay(100);
 }
 
 void OBD_read(void)
