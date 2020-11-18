@@ -1,5 +1,13 @@
 #include <Wire.h>
 #include <SoftWire.h>
+#include <SPI.h>
+#include <SD.h>
+
+unsigned long time;
+unsigned long millisec;
+unsigned long tseconds;
+unsigned long tminutes;
+unsigned long seconds;
 
 // Tire Temp Comms
 int incomingByte = 0;
@@ -7,6 +15,10 @@ int incomingByte = 0;
 // IMU Variables
 const int MPU_addr = 0x68;
 int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
+
+// SD Card Variables
+File myFile;
+const int chipSelect = 11;
   
 void setup()
 {
@@ -25,6 +37,19 @@ void setup()
   Wire.write(0x6B);  // PWR_MGMT_1 register
   Wire.write(0);     // set to zero (wakes up the MPU-6050)
   Wire.endTransmission(true);
+
+  // SD card init on CS D11
+  Serial.print("Initializing SD Card...");
+  if (!SD.begin(chipSelect)) {
+    Serial.println("SD Initialization failed. Insert SD card and press reset");
+    while (1);
+  }
+  Serial.println("SD Initialization Complete!");
+  myFile = SD.open("stuff.csv", FILE_WRITE);
+  if (myFile) {
+    myFile.println("Minutes,Seconds,Milliseconds,FL Outer,FL Inner,FR Outer,FR Inner,RL Outer,RL Inner,RR Outer,RR Inner,AcX,AcY,AcZ,GyX,GyY,GyZ,Satellites,Lat,Long,GPS Speed,Vehicle Speed,RPM");
+  }
+  myFile.close();
 }
 
 void loop()
@@ -63,6 +88,38 @@ void loop()
   Serial.print(",");
   Serial.print((float)GyZ/131, 3);
   Serial.println();
+
+  myFile = SD.open("stuff.csv", FILE_WRITE);
+  if (myFile) {
+    time = millis();
+    convertTime(time);
+    myFile.print(tminutes);
+    myFile.print(",");
+    myFile.print(seconds);
+    myFile.print(",");
+    myFile.print(millisec);
+    myFile.print(",");
+    myFile.print((float)AcX/16384), 3;
+    myFile.print(",");
+    myFile.print((float)AcY/16384, 3);
+    myFile.print(",");
+    myFile.print((float)AcZ/16384, 3);
+    myFile.print(",");
+    myFile.print((float)GyX/131, 3);
+    myFile.print(",");
+    myFile.print((float)GyY/131, 3);
+    myFile.println();
+    Serial.println("Logging...");
+  }
+  myFile.close();
   
   delay(50);
+}
+
+void convertTime(unsigned long times)
+{
+  millisec  = times % 1000;
+  tseconds = times / 1000;
+  tminutes = tseconds / 60;
+  seconds = tseconds % 60;
 }
