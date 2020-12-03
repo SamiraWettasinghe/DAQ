@@ -3,7 +3,7 @@
  #include "i2cmaster.h"
 
  // New slave address (default is 0x5A)
- byte NewMLXAddr = 0x4B;
+ byte NewMLXAddr = 0x5B;
 
  void setup(){
    Serial.begin(9600);

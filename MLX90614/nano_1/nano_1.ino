@@ -28,7 +28,6 @@ int8_t data_high_A = 0;
 int8_t data_low_B = 0;
 int8_t data_high_B = 0;
 int pec = 0;
-double tempFactor = 0.02;
 
 byte megaRequest = 0;
 byte messageRequest = 0;
@@ -76,9 +75,21 @@ void setup()
     delay(500);
     digitalWrite(7, HIGH);
 
-    digitalWrite(2, LOW);
-
     delay(1000);
+
+    // start bit, 3 bit sender, 3 bit receiver, end bit
+    // 1 000 001 1
+    digitalWrite(2, LOW);
+    while (megaRequest != 0x83) {
+        digitalWrite(7, LOW);
+        delay(300);
+        if (Serial.available() > 0) {
+            megaRequest = Serial.read();
+        }
+    }
+    sendData = true;
+    digitalWrite(7, HIGH);
+    delay(100);
 }
 
 void loop()
@@ -86,7 +97,7 @@ void loop()
     if (sendData == true) {
         digitalWrite(2, HIGH);
         readSensor();
-        Serial.write(0x95);
+        Serial.write(0xA3);
         delay(2);
         Serial.write(data_high_A);
         delay(2);
@@ -96,7 +107,7 @@ void loop()
         delay(2);
         Serial.write(data_low_B);
         delay(2);
-        Serial.write(0xA3);
+        Serial.write(0x95);
         delay(2); // will need to tune this some more
         digitalWrite(2, LOW);
         digitalWrite(7, LOW);
@@ -107,7 +118,7 @@ void loop()
     if (Serial.available() > 0) {
         messageRequest = Serial.read();
         // 1 001 010 1
-        if (messageRequest == 0x95) {
+        if (messageRequest == 0xA3) {
             sendData = true;
         }
     }
