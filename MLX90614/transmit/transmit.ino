@@ -18,6 +18,13 @@ TODO:
 */
 #include <i2cmaster.h>
 
+#define LED 7
+#define LED_ON LOW
+#define LED_OFF HIGH
+#define IO 2
+#define IO_TRANSMIT HIGH
+#define IO_RECEIVE LOW
+
 int dev_A = 0x5A << 1; // address location sensor 1
 int dev_B = 0x5B << 1; // address location sesnor 2
 
@@ -38,24 +45,24 @@ void setup()
 {
     // Status LED
     pinMode(7, OUTPUT);
-    digitalWrite(7, LOW);
+    digitalWrite(LED, LED_ON);
     delay(500);
-    digitalWrite(7, HIGH);
+    digitalWrite(LED, LED_OFF);
 
     delay(1000);
     
     Serial.begin(9600);
-    digitalWrite(7, LOW);
+    digitalWrite(LED, LED_ON);
     delay(500);
-    digitalWrite(7, HIGH);
+    digitalWrite(LED, LED_OFF);
 
     delay(1000);
 
     // I/O control for serial comms
     pinMode(2, OUTPUT);
-    digitalWrite(7, LOW);
+    digitalWrite(LED, LED_ON);
     delay(500);
-    digitalWrite(7, HIGH);
+    digitalWrite(LED, LED_OFF);
 
     delay(1000);
 
@@ -64,30 +71,48 @@ void setup()
     pinMode(4, INPUT);
     pinMode(5, INPUT);
     pinMode(6, INPUT);
-    digitalWrite(7, LOW);
+    digitalWrite(LED, LED_ON);
     delay(500);
-    digitalWrite(7, HIGH);
+    digitalWrite(LED, LED_OFF);
 
     delay(1000);
 
     i2c_init();
     PORTC = (1 << PORTC4) | (1 << PORTC5);
-    digitalWrite(7, LOW);
+    digitalWrite(LED, LED_ON);
     delay(500);
-    digitalWrite(7, HIGH);
+    digitalWrite(LED, LED_OFF);
 
-    digitalWrite(2, LOW);
+    digitalWrite(IO, IO_RECEIVE);
 
     delay(1000);
 }
 
 void loop()
 {
-    if (sendData == true) {
-        digitalWrite(2, HIGH);
+    
+    while ((Serial.available() > 0) && (!sendData)) {
+        messageRequest = Serial.read();
+        if (messageRequest == 0x95) {
+            sendData = true;
+        }
+    }
+
+    if (sendData) {
+        digitalWrite(LED, LED_ON);
+        digitalWrite(IO, IO_TRANSMIT);
+
         readSensor();
+
+//        // HEADER is FF
+//        Serial.write(0xFF);
+//        delay(2);
+
+        // FROM
         Serial.write(0x95);
         delay(2);
+
+        // DATA payload
         Serial.write(data_high_A);
         delay(2);
         Serial.write(data_low_A);
@@ -96,21 +121,17 @@ void loop()
         delay(2);
         Serial.write(data_low_B);
         delay(2);
+
+        // TO
         Serial.write(0xA3);
-        delay(2); // will need to tune this some more
-        digitalWrite(2, LOW);
-        digitalWrite(7, LOW);
+        delay(2);
+
         sendData = false;
+
+        digitalWrite(IO, IO_RECEIVE);
+        digitalWrite(LED, LED_OFF);
     }
     delay(100);
-    digitalWrite(7, HIGH);
-    if (Serial.available() > 0) {
-        messageRequest = Serial.read();
-        // 1 001 010 1
-        if (messageRequest == 0x95) {
-            sendData = true;
-        }
-    }
 }
 
 void readSensor()

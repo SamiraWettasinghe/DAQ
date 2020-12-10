@@ -2,24 +2,41 @@
 #include <SPI.h>
 #include <SD.h>
 
+#define FL 0x95
+#define FR 0xA3
+
+enum state {
+  FROM,
+  DATA_HIGH_A,
+  DATA_LOW_A,
+  DATA_HIGH_B,
+  DATA_LOW_B,
+  TO
+};
+
+enum state myState;
+
 unsigned long time;
-unsigned long millisec;
 unsigned long tseconds;
 unsigned long tminutes;
 unsigned long seconds;
+unsigned long millisec;
 
 // Tire Temp Comms
-int incomingByte = 0;
-int lastByte = 0;
-int data_high_A = 0;
-int data_low_A = 0;
-int data_high_B = 0;
-int data_low_B = 0;
+boolean breakNow = false;
+byte fromAddress;
+byte high_A;
+byte low_A;
+byte high_B;
+byte low_B;
+double TEMP_A = 0;
+double TEMP_B = 0;
+double tempFactor = 0.02;
+
 double FL_A = 0;
 double FL_B = 0;
 double FR_A = 0;
 double FR_B = 0;
-double tempFactor = 0.02;
 
 // IMU Variables
 const int MPU_addr = 0x68;
@@ -28,7 +45,7 @@ int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
 // SD Card Variables
 File myFile;
 const int chipSelect = 53;
-  
+
 void setup()
 {
   Serial.begin(9600);
@@ -69,22 +86,22 @@ void setup()
 
   delay(1000);
 
-  digitalWrite(38, LOW);
-  Serial.print("Initializing SD Card...");
-  if (!SD.begin(chipSelect)) {
-    Serial.println("SD Initialization failed. Insert SD card and press reset");
-    while (1);
-  }
-  Serial.println("SD Initialization Complete!");
-  myFile = SD.open("stuff.csv", FILE_WRITE);
-  if (myFile) {
-    myFile.println("Minutes,Seconds,Milliseconds,FL Outer,FL Inner,FR Outer,FR Inner,RL Outer,RL Inner,RR Outer,RR Inner,AcX,AcY,AcZ,GyX,GyY,GyZ,Satellites,Lat,Long,GPS Speed,Vehicle Speed,RPM");
-  }
-  myFile.close();
-  delay(500);
-  digitalWrite(38, HIGH);
-
-  delay(1000);
+//  digitalWrite(38, LOW);
+//  Serial.print("Initializing SD Card...");
+//  if (!SD.begin(chipSelect)) {
+//    Serial.println("SD Initialization failed. Insert SD card and press reset");
+//    while (1);
+//  }
+//  Serial.println("SD Initialization Complete!");
+//  myFile = SD.open("stuff.csv", FILE_WRITE);
+//  if (myFile) {
+//    myFile.println("Minutes,Seconds,Milliseconds,FL Outer,FL Inner,FR Outer,FR Inner,RL Outer,RL Inner,RR Outer,RR Inner,AcX,AcY,AcZ,GyX,GyY,GyZ,Satellites,Lat,Long,GPS Speed,Vehicle Speed,RPM");
+//  }
+//  myFile.close();
+//  delay(500);
+//  digitalWrite(38, HIGH);
+//
+//  delay(1000);
 
   digitalWrite(22, HIGH);
   Serial1.write(0x83);
@@ -95,6 +112,17 @@ void setup()
 
 void loop()
 {
+
+  while ((Serial1.available() > 0) && (!breakNow)) {
+    if (Serial1.available() >= 63) {
+      Serial.println("OVERFLOW");
+    }
+    else {
+      readSerial(Serial1.read());
+    }
+  }
+  breakNow = false;
+
   // Read IMU
   Wire.beginTransmission(MPU_addr);
   Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
@@ -111,89 +139,37 @@ void loop()
   GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
   GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
 
-  if (Serial1.available() > 0){
-    incomingByte = Serial1.read();
-  }
-  
-  if ((incomingByte == 0x95) || incomingByte == 0xA3) {
-    if (Serial1.available() > 0) {
-      data_high_A = Serial1.read();
-    }
-    delay(5);
-    if (Serial1.available() > 0) {
-      data_low_A = Serial1.read();
-    }
-    delay(5);
-    if (Serial1.available() > 0) {
-      data_high_B = Serial1.read();
-    }
-    delay(5);
-    if (Serial1.available() > 0) {
-      data_low_B = Serial1.read();
-    }
-    delay(5);
-    if (Serial1.available() > 0) {
-      lastByte = Serial1.read();
-    }
-
-    if (incomingByte == 0x95) {
-      FL_A = (double)(((data_high_A & 0x007F) << 8) + data_low_A);
-      FL_A = (FL_A * tempFactor) - 0.01;
-      FL_A = FL_A - 273.15;
-    
-      FL_B = (double)(((data_high_B & 0x007F) << 8) + data_low_B);
-      FL_B = (FL_B * tempFactor) - 0.01;
-      FL_B = FL_B - 273.15;
-
-      Serial.print("FL Temp A: ");
-      Serial.print(FL_A);
-      Serial.print(" | FL Temp B: ");
-      Serial.print(FL_B);
-      Serial.println();
-    }
-
-    else if (incomingByte == 0xA3) {
-      FR_A = (double)(((data_high_A & 0x007F) << 8) + data_low_A);
-      FR_A = (FR_A * tempFactor) - 0.01;
-      FR_A = FR_A - 273.15;
-    
-      FR_B = (double)(((data_high_B & 0x007F) << 8) + data_low_B);
-      FR_B = (FR_B * tempFactor) - 0.01;
-      FR_B = FR_B - 273.15;
-
-      Serial.print("FR Temp A: ");
-      Serial.print(FR_A);
-      Serial.print(" | FR Temp B: ");
-      Serial.print(FR_B);
-      Serial.println();
-    }
-
-    incomingByte = 0;
-  }
-
-  myFile = SD.open("stuff.csv", FILE_WRITE);
-  if (myFile) {
-    time = millis();
-    convertTime(time);
-    myFile.print(tminutes);
-    myFile.print(",");
-    myFile.print(seconds);
-    myFile.print(",");
-    myFile.print(millisec);
-    myFile.print(",");
-    myFile.print((float)AcX/16384), 3;
-    myFile.print(",");
-    myFile.print((float)AcY/16384, 3);
-    myFile.print(",");
-    myFile.print((float)AcZ/16384, 3);
-    myFile.print(",");
-    myFile.print((float)GyX/131, 3);
-    myFile.print(",");
-    myFile.print((float)GyY/131, 3);
-    myFile.println();
-    Serial.println("Logging...");
-  }
-  myFile.close();
+  // myFile = SD.open("stuff.csv", FILE_WRITE);
+  // if (myFile) {
+  //   time = millis();
+  //   convertTime(time);
+  //   myFile.print(tminutes);
+  //   myFile.print(",");
+  //   myFile.print(seconds);
+  //   myFile.print(",");
+  //   myFile.print(millisec);
+  //   myFile.print(",");
+  //   myFile.print(FL_A);
+  //   myFile.print(",");
+  //   myFile.print(FL_B);
+  //   myFile.print(",");
+  //   myFile.print(FR_A);
+  //   myFile.print(",");
+  //   myFile.print(FR_B);
+  //   myFile.print(",");
+  //   myFile.print((float)AcX/16384), 3;
+  //   myFile.print(",");
+  //   myFile.print((float)AcY/16384, 3);
+  //   myFile.print(",");
+  //   myFile.print((float)AcZ/16384, 3);
+  //   myFile.print(",");
+  //   myFile.print((float)GyX/131, 3);
+  //   myFile.print(",");
+  //   myFile.print((float)GyY/131, 3);
+  //   myFile.println();
+  //   Serial.println("Logging...");
+  // }
+  // myFile.close();
 }
 
 void convertTime(unsigned long times)
@@ -202,4 +178,83 @@ void convertTime(unsigned long times)
   tseconds = times / 1000;
   tminutes = tseconds / 60;
   seconds = tseconds % 60;
+}
+
+void readSerial(byte p) {
+//  Serial.println(p);
+//  if (p == FL || p == FR) {
+//    myState = FROM;
+//  }
+
+  switch (myState) {
+
+    case FROM:
+      if (p == FL || p == FR) {
+        myState = DATA_HIGH_A;
+        fromAddress = p;
+      }
+      break;
+
+    case DATA_HIGH_A:
+      myState = DATA_LOW_A;
+      high_A = p;
+      break;
+
+    case DATA_LOW_A:
+      myState = DATA_HIGH_B;
+      low_A = p;
+      break;
+
+    case DATA_HIGH_B:
+      myState = DATA_LOW_B;
+      high_B = p;
+      break;
+
+    case DATA_LOW_B:
+      myState = TO;
+      low_B = p;
+      break;
+
+    case TO:
+      myState = FROM;
+      calculateTemp();
+      breakNow = true;
+      break;
+  }
+}
+
+void calculateTemp() {
+  TEMP_A = (double)(((high_A & 0x007F) << 8) + low_A);
+  TEMP_A = (TEMP_A * tempFactor) - 0.01;
+  TEMP_A = TEMP_A - 273.15;
+
+  TEMP_B = (double)(((high_B & 0x007F) << 8) + low_B);
+  TEMP_B = (TEMP_B * tempFactor) - 0.01;
+  TEMP_B = TEMP_B - 273.15;
+
+  if (fromAddress == FL) {
+    FL_A = TEMP_A;
+    FL_B = TEMP_B;
+    Serial.print("FL_A: ");
+    Serial.print(FL_A);
+    Serial.print(" | FL_B: ");
+    Serial.print(FL_B);
+    Serial.println();
+  }
+
+  else if (fromAddress == FR) {
+    FR_A = TEMP_A;
+    FR_B = TEMP_B;
+    Serial.print("FR_A: ");
+    Serial.print(FR_A);
+    Serial.print(" | FR_B: ");
+    Serial.print(FR_B);
+    Serial.println();
+  }
+
+  fromAddress = 0;
+  high_A = 0;
+  low_A = 0;
+  high_B = 0;
+  low_B = 0;
 }

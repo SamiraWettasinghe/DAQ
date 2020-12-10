@@ -1,4 +1,4 @@
-19763359637566698
+19764970876359985
 Arduino
 Arduino_101_Shield
 https://store.arduino.cc/genuino-101
@@ -77839,6 +77839,13 @@ MLX90614ESF-BCC-000-TU
 0
 4
 4
+TTS-UART
+PinSocket_2x18_P2.54mm_Vertical_Swapped
+Through hole straight socket strip, 2x18, 2.54mm pitch, double cols (from Kicad 4.0.7), script generated
+Through hole socket strip THT 2x18 2.54mm double row
+0
+36
+36
 TTS-UART
 TVS_ESD9D5.0ST5G
 
