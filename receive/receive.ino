@@ -2,10 +2,22 @@
 #include <SPI.h>
 #include <SD.h>
 
+#define LED 38
+#define ERR_LED 39 // TODO: select a better digital port
+
+#define LED_ON LOW
+#define LED_OFF HIGH
+
+#define IO 22
+#define IO_TRANSMIT HIGH
+#define IO_RECEIVE LOW
+
 #define FL 0x95
 #define FR 0xA3
+#define HEAD 0xFF
 
 enum state {
+  HEADER,
   FROM,
   DATA_HIGH_A,
   DATA_LOW_A,
@@ -13,6 +25,9 @@ enum state {
   DATA_LOW_B,
   TO
 };
+
+// flags
+byte errorCode = 0x00;
 
 enum state myState;
 
@@ -51,26 +66,34 @@ void setup()
   Serial.begin(9600);
   Serial.println("Debug monitor started");
   
-  // Status LED
-  pinMode(38, OUTPUT);
-  digitalWrite(38, LOW);
+  // Hearbeat LED
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, LED_ON);
   delay(500);
-  digitalWrite(38, HIGH);
+  digitalWrite(LED_OFF, LED_OFF);
+
+  delay(1000);
+
+// Error LED
+  pinMode(ERR_LED, OUTPUT);
+  digitalWrite(ERR_LED, LED_ON);
+  delay(500);
+  digitalWrite(ERR_LED, LED_OFF);
 
   delay(1000);
   
   Serial1.begin(9600);
-  digitalWrite(38, LOW);
+  digitalWrite(LED, LED_ON);
   delay(500);
-  digitalWrite(38, HIGH);
+  digitalWrite(LED_OFF, LED_OFF);
 
   delay(1000);
   
   // I/O control for serial comms
-  pinMode(22, OUTPUT);
-  digitalWrite(38, LOW);
+  pinMode(IO, OUTPUT);
+  digitalWrite(LED, LED_ON);
   delay(500);
-  digitalWrite(38, HIGH);
+  digitalWrite(LED_OFF, LED_OFF);
 
   delay(1000);
 
@@ -80,42 +103,45 @@ void setup()
   Wire.write(0x6B);  // PWR_MGMT_1 register
   Wire.write(0);     // set to zero (wakes up the MPU-6050)
   Wire.endTransmission(true);
-  digitalWrite(38, LOW);
+  digitalWrite(LED, LED_ON);
   delay(500);
-  digitalWrite(38, HIGH);
+  digitalWrite(LED_OFF, LED_OFF);
 
   delay(1000);
 
-//  digitalWrite(38, LOW);
-//  Serial.print("Initializing SD Card...");
-//  if (!SD.begin(chipSelect)) {
-//    Serial.println("SD Initialization failed. Insert SD card and press reset");
-//    while (1);
-//  }
-//  Serial.println("SD Initialization Complete!");
-//  myFile = SD.open("stuff.csv", FILE_WRITE);
-//  if (myFile) {
-//    myFile.println("Minutes,Seconds,Milliseconds,FL Outer,FL Inner,FR Outer,FR Inner,RL Outer,RL Inner,RR Outer,RR Inner,AcX,AcY,AcZ,GyX,GyY,GyZ,Satellites,Lat,Long,GPS Speed,Vehicle Speed,RPM");
-//  }
-//  myFile.close();
-//  delay(500);
-//  digitalWrite(38, HIGH);
-//
-//  delay(1000);
+  digitalWrite(LED, LED_ON);
+  Serial.print("Initializing SD Card...");
+  if (!SD.begin(chipSelect)) {
+    Serial.println("SD Initialization failed. Insert SD card and press reset");
+    while (1);
+  }
+  Serial.println("SD Initialization Complete!");
+  myFile = SD.open("stuff.csv", FILE_WRITE);
+  if (myFile) {
+    myFile.println("Minutes,Seconds,Milliseconds,FL Outer,FL Inner,FR Outer,FR Inner,AcX,AcY,AcZ,GyX,GyY,GyZ,Error");
+  }
+  myFile.close();
+  digitalWrite(LED, LED_OFF);
+  delay(500);
 
-  digitalWrite(22, HIGH);
+  delay(1000);
+
+  digitalWrite(IO, IO_TRANSMIT);
   Serial1.write(0x83);
   Serial.println("Enable Message sent");
   delay(50);
-  digitalWrite(22, LOW);
+  digitalWrite(IO, IO_RECEIVE);
 }
 
 void loop()
 {
+  digitalWrite(LED, LED_ON);
 
   while ((Serial1.available() > 0) && (!breakNow)) {
     if (Serial1.available() >= 63) {
-      Serial.println("OVERFLOW");
+      errorCode = 0x01;
+      Serial.println("Overflow Error");
+      digitalWrite(ERR_LED, LED_ON);
     }
     else {
       readSerial(Serial1.read());
@@ -139,37 +165,44 @@ void loop()
   GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
   GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
 
-  // myFile = SD.open("stuff.csv", FILE_WRITE);
-  // if (myFile) {
-  //   time = millis();
-  //   convertTime(time);
-  //   myFile.print(tminutes);
-  //   myFile.print(",");
-  //   myFile.print(seconds);
-  //   myFile.print(",");
-  //   myFile.print(millisec);
-  //   myFile.print(",");
-  //   myFile.print(FL_A);
-  //   myFile.print(",");
-  //   myFile.print(FL_B);
-  //   myFile.print(",");
-  //   myFile.print(FR_A);
-  //   myFile.print(",");
-  //   myFile.print(FR_B);
-  //   myFile.print(",");
-  //   myFile.print((float)AcX/16384), 3;
-  //   myFile.print(",");
-  //   myFile.print((float)AcY/16384, 3);
-  //   myFile.print(",");
-  //   myFile.print((float)AcZ/16384, 3);
-  //   myFile.print(",");
-  //   myFile.print((float)GyX/131, 3);
-  //   myFile.print(",");
-  //   myFile.print((float)GyY/131, 3);
-  //   myFile.println();
-  //   Serial.println("Logging...");
-  // }
-  // myFile.close();
+  myFile = SD.open("stuff.csv", FILE_WRITE);
+  if (myFile) {
+    time = millis();
+    convertTime(time);
+    myFile.print(tminutes);
+    myFile.print(",");
+    myFile.print(seconds);
+    myFile.print(",");
+    myFile.print(millisec);
+    myFile.print(",");
+    myFile.print(FL_A);
+    myFile.print(",");
+    myFile.print(FL_B);
+    myFile.print(",");
+    myFile.print(FR_A);
+    myFile.print(",");
+    myFile.print(FR_B);
+    myFile.print(",");
+    myFile.print((float)AcX/16384), 3;
+    myFile.print(",");
+    myFile.print((float)AcY/16384, 3);
+    myFile.print(",");
+    myFile.print((float)AcZ/16384, 3);
+    myFile.print(",");
+    myFile.print((float)GyX/131, 3);
+    myFile.print(",");
+    myFile.print((float)GyY/131, 3);
+    myFile.print(",");
+    myFile.print((float)GyZ/131, 3);
+    myFile.print(",");
+    myFile.print(errorCode);
+    myFile.println();
+  }
+  myFile.close();
+
+  errorCode = 0x00;
+  digitalWrite(LED, LED_OFF);
+  digitalWrite(ERR_LED, LED_OFF);
 }
 
 void convertTime(unsigned long times)
@@ -181,18 +214,32 @@ void convertTime(unsigned long times)
 }
 
 void readSerial(byte p) {
-//  Serial.println(p);
-//  if (p == FL || p == FR) {
-//    myState = FROM;
-//  }
+
+  if (p == HEAD) {
+    if (myState != HEADER) {
+      errorCode = 0x02;
+      Serial.println("Received data is not as expected. Did not expect HEADER.");
+      digitalWrite(ERR_LED, LED_ON);
+    }
+    myState = HEADER;
+  }
 
   switch (myState) {
 
-    case FROM:
-      if (p == FL || p == FR) {
-        myState = DATA_HIGH_A;
-        fromAddress = p;
+    case HEADER:
+      if (p == HEAD) {
+        myState = FROM;
       }
+      else {
+        errorCode = 0x03;
+        Serial.println("Received data is not as expected. Expected HEADER but received something else");
+        digitalWrite(ERR_LED, LED_ON);
+      }
+    break;
+
+    case FROM:
+      myState = DATA_HIGH_A;
+      fromAddress = p;
       break;
 
     case DATA_HIGH_A:
@@ -216,7 +263,7 @@ void readSerial(byte p) {
       break;
 
     case TO:
-      myState = FROM;
+      myState = HEADER;
       calculateTemp();
       breakNow = true;
       break;

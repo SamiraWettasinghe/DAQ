@@ -24,6 +24,7 @@ TODO:
 #define IO 2
 #define IO_TRANSMIT HIGH
 #define IO_RECEIVE LOW
+#define HEADER 0xFF
 
 int dev_A = 0x5A << 1; // address location sensor 1
 int dev_B = 0x5B << 1; // address location sesnor 2
@@ -104,9 +105,9 @@ void loop()
 
         readSensor();
 
-//        // HEADER is FF
-//        Serial.write(0xFF);
-//        delay(2);
+       // HEADER is FF
+        Serial.write(HEADER);
+        delay(2);
 
         // FROM
         Serial.write(0x95);
