@@ -52,7 +52,7 @@ void setup()
 
     delay(1000);
     
-    Serial.begin(9600);
+    Serial.begin(115200);
     digitalWrite(LED, LED_ON);
     delay(500);
     digitalWrite(LED, LED_OFF);

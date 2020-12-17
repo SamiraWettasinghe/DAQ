@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name SD-Card-rescue)(type Legacy)(uri "${KIPRJMOD}/SD Card-rescue.lib")(options "")(descr ""))
+  (lib (name Test_Board)(type Legacy)(uri "C:/Users/samir/OneDrive/Documents/Projects/DAQ/Schematic/Test_board/SD card/lm25007/2020-12-14_12-48-08.lib")(options "")(descr ""))
+)

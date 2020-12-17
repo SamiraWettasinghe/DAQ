@@ -28,6 +28,7 @@ enum state {
 
 // flags
 byte errorCode = 0x00;
+int counter = 0;
 
 enum state myState;
 
@@ -63,14 +64,14 @@ const int chipSelect = 53;
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Debug monitor started");
   
   // Hearbeat LED
   pinMode(LED, OUTPUT);
   digitalWrite(LED, LED_ON);
   delay(500);
-  digitalWrite(LED_OFF, LED_OFF);
+  digitalWrite(LED, LED_OFF);
 
   delay(1000);
 
@@ -82,10 +83,10 @@ void setup()
 
   delay(1000);
   
-  Serial1.begin(9600);
+  Serial1.begin(115200);
   digitalWrite(LED, LED_ON);
   delay(500);
-  digitalWrite(LED_OFF, LED_OFF);
+  digitalWrite(LED, LED_OFF);
 
   delay(1000);
   
@@ -93,7 +94,7 @@ void setup()
   pinMode(IO, OUTPUT);
   digitalWrite(LED, LED_ON);
   delay(500);
-  digitalWrite(LED_OFF, LED_OFF);
+  digitalWrite(LED, LED_OFF);
 
   delay(1000);
 
@@ -105,7 +106,7 @@ void setup()
   Wire.endTransmission(true);
   digitalWrite(LED, LED_ON);
   delay(500);
-  digitalWrite(LED_OFF, LED_OFF);
+  digitalWrite(LED, LED_OFF);
 
   delay(1000);
 
@@ -143,8 +144,16 @@ void loop()
       Serial.println("Overflow Error");
       digitalWrite(ERR_LED, LED_ON);
     }
-    else {
-      readSerial(Serial1.read());
+    readSerial(Serial1.read());
+    counter = 0;
+  }
+
+  if (Serial1.available() <= 0) {
+    counter++;
+    if (counter > 50) {
+      Serial.println("No data received, check your connections");
+      errorCode = 0x04;
+      digitalWrite(ERR_LED, LED_ON);
     }
   }
   breakNow = false;
@@ -165,6 +174,7 @@ void loop()
   GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
   GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
 
+  digitalWrite(LED, LED_OFF);
   myFile = SD.open("stuff.csv", FILE_WRITE);
   if (myFile) {
     time = millis();
@@ -201,7 +211,6 @@ void loop()
   myFile.close();
 
   errorCode = 0x00;
-  digitalWrite(LED, LED_OFF);
   digitalWrite(ERR_LED, LED_OFF);
 }
 
@@ -235,7 +244,7 @@ void readSerial(byte p) {
         Serial.println("Received data is not as expected. Expected HEADER but received something else");
         digitalWrite(ERR_LED, LED_ON);
       }
-    break;
+      break;
 
     case FROM:
       myState = DATA_HIGH_A;
