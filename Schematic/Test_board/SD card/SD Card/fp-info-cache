@@ -1,4 +1,4 @@
-19035697789455903
+19048563171579091
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -56209,6 +56209,13 @@ Yellow 5381 Series LED
 0
 2
 2
+LM25007MM
+LM25007SD&slash_NOPB
+
+
+0
+9
+9
 Module
 A20_OLINUXINO_LIME2
 A20 Olinuxino LIME2, 1.2GHz, 512-1024MB RAM, Micro-SD, NAND or eMMC, 1000Mbit Ethernet
@@ -77741,6 +77748,55 @@ Logo WEEE
 0
 0
 0
+TTS_UART
+DO204-10
+<B>DIODE</B><p>diameter 4 mm, horizontal, grid 10 mm
+
+0
+2
+2
+TTS_UART
+ISL81487EIPZ-PDIP
+
+
+0
+8
+8
+TTS_UART
+KBP306GTB
+
+
+0
+4
+4
+TTS_UART
+KMDGX-4S-BS
+
+
+0
+4
+4
+TTS_UART
+MLX90614ESF-BCC-000-TU
+
+
+0
+4
+4
+TTS_UART
+PinSocket_2x18_P2.54mm_Vertical_Swapped
+Through hole straight socket strip, 2x18, 2.54mm pitch, double cols (from Kicad 4.0.7), script generated
+Through hole socket strip THT 2x18 2.54mm double row
+0
+36
+36
+TTS_UART
+TVS_ESD9D5.0ST5G
+
+
+0
+2
+2
 TerminalBlock
 TerminalBlock_Altech_AK300-2_P5.00mm
 Altech AK300 terminal block, pitch 5.0mm, 45 degree angled, see http://www.mouser.com/ds/2/16/PCBMETRC-24178.pdf

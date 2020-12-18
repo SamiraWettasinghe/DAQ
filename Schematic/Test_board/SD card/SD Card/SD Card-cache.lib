@@ -50,11 +50,11 @@ X Pin_5 5 -200 -200 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Connector_Conn_01x07_Female
+# Connector_Conn_01x06_Female
 #
-DEF Connector_Conn_01x07_Female J 0 40 Y N 1 F N
-F0 "J" 0 400 50 H V C CNN
-F1 "Connector_Conn_01x07_Female" 0 -400 50 H V C CNN
+DEF Connector_Conn_01x06_Female J 0 40 Y N 1 F N
+F0 "J" 0 300 50 H V C CNN
+F1 "Connector_Conn_01x06_Female" 0 -400 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -67,21 +67,18 @@ A 0 -100 20 901 -901 1 1 6 N 0 -80 0 -120
 A 0 0 20 901 -901 1 1 6 N 0 20 0 -20
 A 0 100 20 901 -901 1 1 6 N 0 120 0 80
 A 0 200 20 901 -901 1 1 6 N 0 220 0 180
-A 0 300 20 901 -901 1 1 6 N 0 320 0 280
 P 2 1 1 6 -50 -300 -20 -300 N
 P 2 1 1 6 -50 -200 -20 -200 N
 P 2 1 1 6 -50 -100 -20 -100 N
 P 2 1 1 6 -50 0 -20 0 N
 P 2 1 1 6 -50 100 -20 100 N
 P 2 1 1 6 -50 200 -20 200 N
-P 2 1 1 6 -50 300 -20 300 N
-X Pin_1 1 -200 300 150 R 50 50 1 1 P
-X Pin_2 2 -200 200 150 R 50 50 1 1 P
-X Pin_3 3 -200 100 150 R 50 50 1 1 P
-X Pin_4 4 -200 0 150 R 50 50 1 1 P
-X Pin_5 5 -200 -100 150 R 50 50 1 1 P
-X Pin_6 6 -200 -200 150 R 50 50 1 1 P
-X Pin_7 7 -200 -300 150 R 50 50 1 1 P
+X Pin_1 1 -200 200 150 R 50 50 1 1 P
+X Pin_2 2 -200 100 150 R 50 50 1 1 P
+X Pin_3 3 -200 0 150 R 50 50 1 1 P
+X Pin_4 4 -200 -100 150 R 50 50 1 1 P
+X Pin_5 5 -200 -200 150 R 50 50 1 1 P
+X Pin_6 6 -200 -300 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
@@ -274,11 +271,11 @@ X NC 9 400 -500 100 L 50 50 1 1 N N
 ENDDRAW
 ENDDEF
 #
-# SD-Card-rescue_503398-1892-uSD_card-SD-Card-rescue
+# SD-Card-rescue_503398-1892-uSD_card-SD-Card-rescue-SD-Card-rescue
 #
-DEF SD-Card-rescue_503398-1892-uSD_card-SD-Card-rescue J 0 40 Y Y 1 L N
+DEF SD-Card-rescue_503398-1892-uSD_card-SD-Card-rescue-SD-Card-rescue J 0 40 Y Y 1 L N
 F0 "J" -501 601 50 H V L BNN
-F1 "SD-Card-rescue_503398-1892-uSD_card-SD-Card-rescue" -500 -700 50 H V L BNN
+F1 "SD-Card-rescue_503398-1892-uSD_card-SD-Card-rescue-SD-Card-rescue" -500 -700 50 H V L BNN
 F2 "MOLEX_503398-1892" 0 0 50 H I L BNN
 F3 "" 0 0 50 H I L BNN
 F4 "0" 0 0 50 H I L BNN "PARTREV"
@@ -303,11 +300,11 @@ X SHIELD P4 700 -500 200 L 40 40 0 0 P
 ENDDRAW
 ENDDEF
 #
-# SD-Card-rescue_LM25007MM_NOPB-lm25007-SD-Card-rescue
+# SD-Card-rescue_LM25007MM_NOPB-lm25007-SD-Card-rescue-SD-Card-rescue
 #
-DEF SD-Card-rescue_LM25007MM_NOPB-lm25007-SD-Card-rescue U 0 10 Y Y 1 F N
+DEF SD-Card-rescue_LM25007MM_NOPB-lm25007-SD-Card-rescue-SD-Card-rescue U 0 10 Y Y 1 F N
 F0 "U" 950 -650 60 H V C CNN
-F1 "SD-Card-rescue_LM25007MM_NOPB-lm25007-SD-Card-rescue" 650 250 60 H V C CNN
+F1 "SD-Card-rescue_LM25007MM_NOPB-lm25007-SD-Card-rescue-SD-Card-rescue" 650 250 60 H V C CNN
 F2 "SDC08A" 650 -650 60 H I C CNN
 F3 "" 0 0 60 H V C CNN
 $FPLIST

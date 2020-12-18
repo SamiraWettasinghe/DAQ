@@ -1,4 +1,4 @@
 (fp_lib_table
-  (lib (name LM25007MM)(type KiCad)(uri "C:/Users/samir/OneDrive/Documents/Projects/DAQ/Schematic/Test_board/SD card")(options "")(descr ""))
-  (lib (name TTS_UART)(type KiCad)(uri C:/Users/samir/OneDrive/Documents/Projects/DAQ/Schematic/TTS/Libraries/TTS-UART.pretty)(options "")(descr ""))
+  (lib (name LM25007MM)(type KiCad)(uri "C:/Users/antul/Desktop/DAQ-2/DAQ/Schematic/Test_board/SD card")(options "")(descr ""))
+  (lib (name TTS_UART)(type KiCad)(uri C:/Users/antul/Desktop/DAQ-2/DAQ/Schematic/TTS/Libraries/TTS-UART.pretty)(options "")(descr ""))
 )
