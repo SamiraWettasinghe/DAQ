@@ -3,7 +3,7 @@
 #include <SD.h>
 
 #define LED 38
-#define ERR_LED 39 // TODO: select a better digital port
+#define ERR_LED 37
 
 #define LED_ON LOW
 #define LED_OFF HIGH
@@ -38,9 +38,14 @@ unsigned long tminutes;
 unsigned long seconds;
 unsigned long millisec;
 
+unsigned long prevTime_30 = 0;
+unsigned long prevTime_100 = 0;
+unsigned long nowTime = 0;
+
 // Tire Temp Comms
 boolean breakNow = false;
 byte fromAddress;
+byte toAddress;
 byte high_A;
 byte low_A;
 byte high_B;
@@ -125,20 +130,40 @@ void setup()
   digitalWrite(LED, LED_OFF);
   delay(500);
 
-  delay(1000);
-
-  digitalWrite(IO, IO_TRANSMIT);
-  Serial1.write(0x83);
-  Serial.println("Enable Message sent");
-  delay(50);
-  digitalWrite(IO, IO_RECEIVE);
+  toAddress = 0xC1;
 }
 
 void loop()
 {
-  digitalWrite(LED, LED_ON);
+  nowTime = millis();
 
-  while ((Serial1.available() > 0) && (!breakNow)) {
+  if ((nowTime-prevTime_30) >= 30) {
+    readTires();
+    readIMU();
+    storeSD();
+    prevTime_30 = millis();
+  }
+
+  nowTime = millis();
+
+  if ((nowTime-prevTime_100) >= 100) {
+    readGPS();
+    storeSD();
+    prevTime_100 = millis();
+  }
+}
+
+void convertTime(unsigned long times)
+{
+  millisec  = times % 1000;
+  tseconds = times / 1000;
+  tminutes = tseconds / 60;
+  seconds = tseconds % 60;
+}
+
+void readTires()
+{
+  while (Serial1.available() > 0) {
     if (Serial1.available() >= 63) {
       errorCode = 0x01;
       Serial.println("Overflow Error");
@@ -148,78 +173,13 @@ void loop()
     counter = 0;
   }
 
-  if (Serial1.available() <= 0) {
-    counter++;
-    if (counter > 50) {
-      Serial.println("No data received, check your connections");
-      errorCode = 0x04;
-      digitalWrite(ERR_LED, LED_ON);
-    }
+  if (toAddress == 0xC1) {
+    digitalWrite(IO, IO_TRANSMIT);
+    Serial1.write(0x83);
+    Serial1.flush();
+    digitalWrite(IO, IO_RECEIVE);
+    toAddress = 0;
   }
-  breakNow = false;
-
-  // Read IMU
-  Wire.beginTransmission(MPU_addr);
-  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
-  Wire.endTransmission(false);
-  Wire.requestFrom(MPU_addr, 14, true); // request a total of 14 registers
-
-  AcX = Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
-  AcY = Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-  AcZ = Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
-
-  Tmp = Wire.read() << 8 | Wire.read(); // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
-
-  GyX = Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
-  GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
-  GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
-
-  digitalWrite(LED, LED_OFF);
-  myFile = SD.open("stuff.csv", FILE_WRITE);
-  if (myFile) {
-    time = millis();
-    convertTime(time);
-    myFile.print(tminutes);
-    myFile.print(",");
-    myFile.print(seconds);
-    myFile.print(",");
-    myFile.print(millisec);
-    myFile.print(",");
-    myFile.print(FL_A);
-    myFile.print(",");
-    myFile.print(FL_B);
-    myFile.print(",");
-    myFile.print(FR_A);
-    myFile.print(",");
-    myFile.print(FR_B);
-    myFile.print(",");
-    myFile.print((float)AcX/16384), 3;
-    myFile.print(",");
-    myFile.print((float)AcY/16384, 3);
-    myFile.print(",");
-    myFile.print((float)AcZ/16384, 3);
-    myFile.print(",");
-    myFile.print((float)GyX/131, 3);
-    myFile.print(",");
-    myFile.print((float)GyY/131, 3);
-    myFile.print(",");
-    myFile.print((float)GyZ/131, 3);
-    myFile.print(",");
-    myFile.print(errorCode);
-    myFile.println();
-  }
-  myFile.close();
-
-  errorCode = 0x00;
-  digitalWrite(ERR_LED, LED_OFF);
-}
-
-void convertTime(unsigned long times)
-{
-  millisec  = times % 1000;
-  tseconds = times / 1000;
-  tminutes = tseconds / 60;
-  seconds = tseconds % 60;
 }
 
 void readSerial(byte p) {
@@ -272,9 +232,9 @@ void readSerial(byte p) {
       break;
 
     case TO:
+      toAddress = p;
       myState = HEADER;
       calculateTemp();
-      breakNow = true;
       break;
   }
 }
@@ -313,4 +273,65 @@ void calculateTemp() {
   low_A = 0;
   high_B = 0;
   low_B = 0;
+}
+
+void readIMU()
+{
+  Wire.beginTransmission(MPU_addr);
+  Wire.write(0x3B);  // starting with register 0x3B (ACCEL_XOUT_H)
+  Wire.endTransmission(false);
+  Wire.requestFrom(MPU_addr, 14, true); // request a total of 14 registers
+
+  AcX = Wire.read() << 8 | Wire.read(); // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)
+  AcY = Wire.read() << 8 | Wire.read(); // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
+  AcZ = Wire.read() << 8 | Wire.read(); // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
+
+  Tmp = Wire.read() << 8 | Wire.read(); // 0x41 (TEMP_OUT_H) & 0x42 (TEMP_OUT_L)
+
+  GyX = Wire.read() << 8 | Wire.read(); // 0x43 (GYRO_XOUT_H) & 0x44 (GYRO_XOUT_L)
+  GyY = Wire.read() << 8 | Wire.read(); // 0x45 (GYRO_YOUT_H) & 0x46 (GYRO_YOUT_L)
+  GyZ = Wire.read() << 8 | Wire.read(); // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
+}
+
+void storeSD()
+{
+  myFile = SD.open("stuff.csv", FILE_WRITE);
+  if (myFile) {
+    time = millis();
+    convertTime(time);
+    myFile.print(tminutes);
+    myFile.print(",");
+    myFile.print(seconds);
+    myFile.print(",");
+    myFile.print(millisec);
+    myFile.print(",");
+    myFile.print(FL_A);
+    myFile.print(",");
+    myFile.print(FL_B);
+    myFile.print(",");
+    myFile.print(FR_A);
+    myFile.print(",");
+    myFile.print(FR_B);
+    myFile.print(",");
+    myFile.print((float)AcX/16384), 3;
+    myFile.print(",");
+    myFile.print((float)AcY/16384, 3);
+    myFile.print(",");
+    myFile.print((float)AcZ/16384, 3);
+    myFile.print(",");
+    myFile.print((float)GyX/131, 3);
+    myFile.print(",");
+    myFile.print((float)GyY/131, 3);
+    myFile.print(",");
+    myFile.print((float)GyZ/131, 3);
+    myFile.print(",");
+    myFile.print(errorCode);
+    myFile.println();
+  }
+  myFile.close();
+}
+
+void readGPS()
+{
+  // put GPS code here
 }
