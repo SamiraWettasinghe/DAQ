@@ -40,7 +40,10 @@ double tempFactor = 0.02;
 
 byte megaRequest = 0;
 byte messageRequest = 0;
-boolean sendData = false;
+
+unsigned long prevTime_20 = 0;
+unsigned long prevTime_10 = 0;
+unsigned long nowTime = 0;
 
 void setup()
 {
@@ -91,48 +94,17 @@ void setup()
 
 void loop()
 {
-    
-    while ((Serial.available() > 0) && (!sendData)) {
-        messageRequest = Serial.read();
-        if (messageRequest == 0x95) {
-            sendData = true;
-        }
-    }
+    nowTime = millis();
 
-    if (sendData) {
-        digitalWrite(LED, LED_ON);
-        digitalWrite(IO, IO_TRANSMIT);
-
+    if ((nowTime - prevTime_10) >= 10) {
         readSensor();
-
-       // HEADER is FF
-        Serial.write(HEADER);
-        delay(2);
-
-        // FROM
-        Serial.write(0x95);
-        delay(2);
-
-        // DATA payload
-        Serial.write(data_high_A);
-        delay(2);
-        Serial.write(data_low_A);
-        delay(2);
-        Serial.write(data_high_B);
-        delay(2);
-        Serial.write(data_low_B);
-        delay(2);
-
-        // TO
-        Serial.write(0xA3);
-        delay(2);
-
-        sendData = false;
-
-        digitalWrite(IO, IO_RECEIVE);
-        digitalWrite(LED, LED_OFF);
+        prevTime_10 = millis();
     }
-    delay(100);
+
+    if ((nowTime - prevTime_20) >= 20) {
+        sendData();
+        prevTime_20 = millis();
+    }
 }
 
 void readSensor()
@@ -154,4 +126,34 @@ void readSensor()
     data_high_B = i2c_readAck();
     pec = i2c_readNak();
     i2c_stop();
+}
+
+void sendData()
+{
+    while (Serial.available() > 0) {
+        digitalWrite(LED, LED_ON);
+        messageRequest = Serial.read();
+        if (messageRequest == 0x95) {
+            digitalWrite(LED, LED_OFF);
+            digitalWrite(IO, IO_TRANSMIT);
+            digitalWrite(LED, LED_ON);
+            // HEADER is FF
+            Serial.write(HEADER);
+
+            // FROM
+            Serial.write(0x95);
+
+            // DATA payload
+            Serial.write(data_high_A);
+            Serial.write(data_low_A);
+            Serial.write(data_high_B);
+            Serial.write(data_low_B);
+
+            // TO
+            Serial.write(0xC1);
+
+            Serial.flush();
+            digitalWrite(IO, IO_RECEIVE);
+        }
+    }
 }

@@ -36,15 +36,19 @@ int8_t data_high_A = 0;
 int8_t data_low_B = 0;
 int8_t data_high_B = 0;
 int pec = 0;
+double tempFactor = 0.02;
 
 byte megaRequest = 0;
 byte messageRequest = 0;
-boolean sendData = false;
+
+unsigned long prevTime_20 = 0;
+unsigned long prevTime_10 = 0;
+unsigned long nowTime = 0;
 
 void setup()
 {
     // Status LED
-    pinMode(LED, OUTPUT);
+    pinMode(7, OUTPUT);
     digitalWrite(LED, LED_ON);
     delay(500);
     digitalWrite(LED, LED_OFF);
@@ -59,7 +63,7 @@ void setup()
     delay(1000);
 
     // I/O control for serial comms
-    pinMode(IO, OUTPUT);
+    pinMode(2, OUTPUT);
     digitalWrite(LED, LED_ON);
     delay(500);
     digitalWrite(LED, LED_OFF);
@@ -83,65 +87,25 @@ void setup()
     delay(500);
     digitalWrite(LED, LED_OFF);
 
-    delay(1000);
-
     digitalWrite(IO, IO_RECEIVE);
-    while (megaRequest != 0x83) {
-        digitalWrite(LED, LED_ON);
-        delay(300);
-        if (Serial.available() > 0) {
-            megaRequest = Serial.read();
-        }
-    }
-    sendData = true;
-    digitalWrite(LED, LED_OFF);
-    delay(100);
+
+    delay(1000);
 }
 
 void loop()
 {
+    digitalWrite(LED, LED_OFF);
+    nowTime = millis();
 
-    while ((Serial.available() > 0) && (!sendData)) {
-        messageRequest = Serial.read();
-        if (messageRequest == 0xA3) {
-            sendData = true;
-        }
-    }
-
-    if (sendData) {
-        digitalWrite(LED, LED_ON);
-        digitalWrite(IO, IO_TRANSMIT);
-
+    if ((nowTime - prevTime_10) >= 10) {
         readSensor();
-
-        // HEADER is FF
-        Serial.write(0xFF);
-        delay(2);
-
-        // FROM
-        Serial.write(0xA3);
-        delay(2);
-
-        // DATA payload
-        Serial.write(data_high_A);
-        delay(2);
-        Serial.write(data_low_A);
-        delay(2);
-        Serial.write(data_high_B);
-        delay(2);
-        Serial.write(data_low_B);
-        delay(2);
-
-        // TO
-        Serial.write(0x95);
-        delay(2);
-
-        sendData = false;
-
-        digitalWrite(IO, IO_RECEIVE);
-        digitalWrite(LED, LED_OFF);
+        prevTime_10 = millis();
     }
-    delay(100); // here to ensure that rx buffer is not overflowing
+
+    if ((nowTime - prevTime_20) >= 20) {
+        sendData();
+        prevTime_20 = millis();
+    }
 }
 
 void readSensor()
@@ -163,4 +127,33 @@ void readSensor()
     data_high_B = i2c_readAck();
     pec = i2c_readNak();
     i2c_stop();
+}
+
+void sendData()
+{
+    while (Serial.available() > 0) {
+        messageRequest = Serial.read();
+        if (messageRequest == 0x83) {
+            digitalWrite(IO, IO_TRANSMIT);
+
+            // HEADER is FF
+            Serial.write(HEADER);
+
+            // FROM
+            Serial.write(0xA3);
+
+            // DATA payload
+            Serial.write(data_high_A);
+            Serial.write(data_low_A);
+            Serial.write(data_high_B);
+            Serial.write(data_low_B);
+
+            // TO
+            Serial.write(0x95);
+
+            Serial.flush();
+            digitalWrite(IO, IO_RECEIVE);
+            digitalWrite(LED, LED_ON);
+        }
+    }
 }
