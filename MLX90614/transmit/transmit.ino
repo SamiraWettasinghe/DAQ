@@ -16,7 +16,7 @@ TODO:
         val = digitalRead(5);
         val = digitalRead(6);
 */
-#include <i2cmaster.h>
+#include <I2cMaster.h>
 
 #define LED 7
 #define LED_ON LOW
@@ -78,7 +78,7 @@ void setup()
 
     delay(1000);
 
-    i2c_init();
+    I2C_init();
     PORTC = (1 << PORTC4) | (1 << PORTC5);
     digitalWrite(LED, LED_ON);
     delay(500);

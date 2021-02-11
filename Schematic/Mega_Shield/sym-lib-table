@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name TTS_UART)(type Legacy)(uri C:/Users/samir/OneDrive/Documents/Projects/DAQ/Schematic/TTS/Libraries/TTS_UART.lib)(options "")(descr ""))
+  (lib (name Mega_Shield-rescue)(type Legacy)(uri ${KIPRJMOD}/Mega_Shield-rescue.lib)(options "")(descr ""))
 )
