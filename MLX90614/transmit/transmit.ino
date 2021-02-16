@@ -27,7 +27,7 @@ TODO:
 #define HEADER 0xFF
 
 int dev_A = 0x5A << 1; // address location sensor 1
-int dev_B = 0x5B << 1; // address location sesnor 2
+//int dev_B = 0x5B << 1; // address location sesnor 2
 
 int val = 0;
 
@@ -81,7 +81,7 @@ void setup()
 
     delay(1000);
 
-    I2C_init();
+    I2C.start();
     PORTC = (1 << PORTC4) | (1 << PORTC5);
     digitalWrite(LED, LED_ON);
     delay(500);

@@ -1,3 +1,6 @@
+#include <I2cMaster.h>
+#include <TwiMap.h>
+
 #include <MLX90621.h>
 #include <Wire.h>
 #define HEADER 0xFF
@@ -11,17 +14,16 @@ double temp_mid = 0.0;
 double temp_out = 0.0;
 long time_taken;
 long start_time;
-boolean sendData=false;
+boolean sendData = false;
 byte messageRequest = 0;
 
-String stringVal = "";     
-  
+String stringVal = "";
+
 
 void setup() {
   Wire.begin();
   sensor.initialise(refresh_rate);
   Serial.begin(115200);
-  Serial.println("Starting MLX90621 thermopile sensor");
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
 }
@@ -31,36 +33,37 @@ void loop() {
     messageRequest = Serial.read();
     if (messageRequest == 'a') {
       sendData = true;
-      Serial.print("ok");
+
+
+      readSensor();
+//      // HEADER is FF
+//      Serial.write(HEADER);
+//      delay(2);
+//
+//      // FROM
+//      Serial.write(0x95);
+//      delay(2);
+      // DATA payload
+
+      stringVal = String(int(temp_in)); //combining both whole and decimal part in string with a full                                                                      //stop between them
+      Serial.print(stringVal + ",");             //display string value
+      delay(2);
+
+      stringVal = String(int(temp_mid)); //combining both whole and decimal part in string with a full                                                                      //stop between them
+      Serial.print(stringVal + ",");
+      delay(2);
+
+      stringVal = String(int(temp_out)); //combining both whole and decimal part in string with a full                                                                      //stop between them
+      Serial.println(stringVal + ",");
+      delay(2);
+      // TO
+      //Serial.write(0xA3);
+      delay(2);
+
+      sendData = false;
+
     }
   }
-  readSensor();
-  // HEADER is FF
-  Serial.write(HEADER);
-  delay(2);
-
-  // FROM
-  Serial.write(0x95);
-  delay(2);
-  // DATA payload
-
-  stringVal=String(int(temp_in)); //combining both whole and decimal part in string with a full                                                                      //stop between them
-  Serial.println(stringVal+ ",");              //display string value
-  delay(2);
-  
-  stringVal=String(int(temp_mid)); //combining both whole and decimal part in string with a full                                                                      //stop between them
-  Serial.println(stringVal+ ",");   
-  delay(2);
-  
-  stringVal=String(int(temp_out)); //combining both whole and decimal part in string with a full                                                                      //stop between them
-  Serial.println(stringVal+ ",");   
-  delay(2);
-  // TO
-  Serial.write(0xA3);
-  delay(2);
-
-  sendData = false;
-  
 }
 
 

@@ -411,7 +411,7 @@ U 1 1 5F903D98
 P 1250 5150
 F 0 "J4" V 1204 5380 50  0000 L CNN
 F 1 "Mini-DIN-4" V 1295 5380 50  0000 L CNN
-F 2 "TTS-URAT:KMDGX-4S-BS" H 1250 5150 50  0001 C CNN
+F 2 "TTS-URAT:RHT-634-1261-1" H 1250 5150 50  0001 C CNN
 F 3 "http://service.powerdynamics.com/ec/Catalog17/Section%2011.pdf" H 1250 5150 50  0001 C CNN
 	1    1250 5150
 	0    1    1    0   
@@ -556,17 +556,6 @@ F 2 "" H 4000 4850 50  0001 C CNN
 F 3 "" H 4000 4850 50  0001 C CNN
 	1    4000 4850
 	-1   0    0    1   
-$EndComp
-$Comp
-L Connector:Screw_Terminal_01x02 J5
-U 1 1 5F8FB33C
-P 2400 7000
-F 0 "J5" V 2400 7100 50  0000 L CNN
-F 1 "Screw_Terminal_01x02" V 2500 6550 50  0000 L CNN
-F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-5.0-H_1x02_P5.00mm_Horizontal" H 2400 7000 50  0001 C CNN
-F 3 "~" H 2400 7000 50  0001 C CNN
-	1    2400 7000
-	0    1    1    0   
 $EndComp
 $Comp
 L Connector:Conn_01x08_Male J7
@@ -800,4 +789,29 @@ Wire Wire Line
 Connection ~ 7250 5150
 Wire Wire Line
 	7250 5150 7250 5100
+$Comp
+L Connector:Mini-DIN-4 J3
+U 1 1 600CA1DA
+P 2350 7200
+F 0 "J3" H 2304 7430 50  0000 L CNN
+F 1 "Mini-DIN-4" H 2150 6950 50  0000 L CNN
+F 2 "TTS-URAT:RHT-634-1261-1" H 2350 7200 50  0001 C CNN
+F 3 "http://service.powerdynamics.com/ec/Catalog17/Section%2011.pdf" H 2350 7200 50  0001 C CNN
+	1    2350 7200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2300 6800 1950 6800
+Wire Wire Line
+	1950 6800 1950 7200
+Wire Wire Line
+	1950 7200 2050 7200
+Wire Wire Line
+	2650 7200 2700 7200
+Wire Wire Line
+	2700 7200 2700 6800
+Wire Wire Line
+	2700 6800 2400 6800
+NoConn ~ 2650 7100
+NoConn ~ 2050 7100
 $EndSCHEMATC

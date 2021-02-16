@@ -517,16 +517,6 @@ Wire Wire Line
 	3850 2450 4100 2450
 Wire Wire Line
 	3850 2350 4100 2350
-Wire Wire Line
-	4100 2250 4350 2250
-Wire Wire Line
-	4100 2350 4100 2250
-Wire Wire Line
-	3850 2250 4050 2250
-Wire Wire Line
-	4050 2150 4350 2150
-Wire Wire Line
-	4050 2250 4050 2150
 $Comp
 L power:VDD #PWR019
 U 1 1 5FD1FB07
@@ -814,4 +804,10 @@ Wire Wire Line
 	2700 6800 2400 6800
 NoConn ~ 2650 7100
 NoConn ~ 2050 7100
+Wire Wire Line
+	3850 2250 4350 2250
+Wire Wire Line
+	4100 2350 4100 2150
+Wire Wire Line
+	4100 2150 4350 2150
 $EndSCHEMATC
