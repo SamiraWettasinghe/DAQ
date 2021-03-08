@@ -142,7 +142,6 @@ Wire Wire Line
 	4150 1600 4150 1550
 Wire Wire Line
 	4350 1600 4150 1600
-Connection ~ 3700 1450
 $Comp
 L power:VCC #PWR0104
 U 1 1 5F8CF966
@@ -158,8 +157,6 @@ Wire Wire Line
 	4150 1750 4350 1750
 Wire Wire Line
 	4150 1750 4150 1850
-Wire Wire Line
-	3700 1900 3700 1450
 Wire Wire Line
 	3700 2200 3700 2350
 Wire Wire Line
@@ -179,8 +176,6 @@ F 3 "~" H 3700 2050 50  0001 C CNN
 	1    3700 2050
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	4350 1450 3700 1450
 Wire Wire Line
 	5200 1450 4950 1450
 Wire Wire Line
@@ -352,8 +347,6 @@ GND_D
 Text Label 6000 3400 3    50   ~ 0
 GND_A
 Wire Wire Line
-	3700 1400 3700 1450
-Wire Wire Line
 	5050 2000 5400 2000
 Wire Wire Line
 	4950 1900 5400 1900
@@ -485,7 +478,7 @@ U 1 1 600CD961
 P 2300 2250
 F 0 "J1" H 2300 1950 50  0000 C CNN
 F 1 "Mini-DIN-4" H 2300 1850 50  0000 C CNN
-F 2 "TTS-URAT:RHT-634-1261-1bottom" H 2300 2250 50  0001 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x02_P2.54mm_Vertical" H 2300 2250 50  0001 C CNN
 F 3 "http://service.powerdynamics.com/ec/Catalog17/Section%2011.pdf" H 2300 2250 50  0001 C CNN
 	1    2300 2250
 	0    1    1    0   
@@ -504,17 +497,6 @@ Wire Wire Line
 	2900 1050 2900 1750
 Wire Wire Line
 	2400 2550 2700 2550
-$Comp
-L Device:R R4
-U 1 1 6011E9B0
-P 4900 2100
-F 0 "R4" V 4850 1900 50  0000 L CNN
-F 1 "4.7k" V 4900 2000 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P5.08mm_Horizontal" V 4830 2100 50  0001 C CNN
-F 3 "~" H 4900 2100 50  0001 C CNN
-	1    4900 2100
-	0    1    1    0   
-$EndComp
 $Comp
 L Device:R R5
 U 1 1 6011FB8A
@@ -549,49 +531,15 @@ F 3 "~" H 4900 2400 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	5400 2100 5050 2100
-Wire Wire Line
 	5400 2200 5050 2200
 Wire Wire Line
 	5400 2300 5050 2300
 Wire Wire Line
 	5400 2400 5050 2400
 Wire Wire Line
-	4750 2400 4550 2400
-Wire Wire Line
-	4250 2400 4250 2450
-Wire Wire Line
-	4750 2300 4600 2300
-Wire Wire Line
-	4550 2300 4550 2400
-Connection ~ 4550 2400
-Wire Wire Line
-	4550 2400 4250 2400
-Wire Wire Line
 	4750 2200 4650 2200
 Wire Wire Line
-	4600 2200 4600 2300
-Connection ~ 4600 2300
-Wire Wire Line
-	4600 2300 4550 2300
-Wire Wire Line
-	4750 2100 4650 2100
-Wire Wire Line
 	4650 2100 4650 2200
-Connection ~ 4650 2200
-Wire Wire Line
-	4650 2200 4600 2200
-$Comp
-L power:VCC #PWR03
-U 1 1 5F97C9F7
-P 4250 2450
-F 0 "#PWR03" H 4250 2300 50  0001 C CNN
-F 1 "VCC" H 4265 2623 50  0000 C CNN
-F 2 "" H 4250 2450 50  0001 C CNN
-F 3 "" H 4250 2450 50  0001 C CNN
-	1    4250 2450
-	-1   0    0    1   
-$EndComp
 $Comp
 L power:GND #PWR01
 U 1 1 6013DAF4
@@ -732,4 +680,76 @@ Text Label 7750 2100 0    50   ~ 0
 T2
 Text Label 7750 2200 0    50   ~ 0
 T1
+$Comp
+L Device:R R9
+U 1 1 6030A83B
+P 4650 2700
+F 0 "R9" H 4720 2746 50  0000 L CNN
+F 1 "10K" H 4720 2655 50  0000 L CNN
+F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 4580 2700 50  0001 C CNN
+F 3 "~" H 4650 2700 50  0001 C CNN
+	1    4650 2700
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR04
+U 1 1 6030B060
+P 4650 2850
+F 0 "#PWR04" H 4650 2600 50  0001 C CNN
+F 1 "GND" H 4655 2677 50  0000 C CNN
+F 2 "" H 4650 2850 50  0001 C CNN
+F 3 "" H 4650 2850 50  0001 C CNN
+	1    4650 2850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4650 2100 5400 2100
+Wire Wire Line
+	4650 2200 4650 2300
+Connection ~ 4650 2200
+Wire Wire Line
+	4750 2300 4650 2300
+Connection ~ 4650 2300
+Wire Wire Line
+	4650 2300 4650 2400
+Wire Wire Line
+	4750 2400 4650 2400
+Connection ~ 4650 2400
+Wire Wire Line
+	4650 2400 4650 2550
+$Comp
+L Connector:Conn_01x03_Male J4
+U 1 1 60333824
+P 4050 1050
+F 0 "J4" V 4112 1194 50  0000 L CNN
+F 1 "Jumper" V 4000 850 50  0000 L CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_1x03_P2.54mm_Vertical" H 4050 1050 50  0001 C CNN
+F 3 "~" H 4050 1050 50  0001 C CNN
+	1    4050 1050
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3700 1400 3700 1450
+Wire Wire Line
+	3950 1250 3950 1450
+Wire Wire Line
+	3950 1450 3700 1450
+Connection ~ 3700 1450
+Wire Wire Line
+	3700 1450 3700 1900
+Wire Wire Line
+	4050 1250 4050 1450
+Wire Wire Line
+	4050 1450 4350 1450
+$Comp
+L power:GND #PWR0113
+U 1 1 6033DB98
+P 4150 1250
+F 0 "#PWR0113" H 4150 1000 50  0001 C CNN
+F 1 "GND" H 4150 1100 50  0000 C CNN
+F 2 "" H 4150 1250 50  0001 C CNN
+F 3 "" H 4150 1250 50  0001 C CNN
+	1    4150 1250
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

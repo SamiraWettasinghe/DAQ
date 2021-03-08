@@ -1,4 +1,4 @@
-19802274631501011
+19807143412369959
 Arduino
 Arduino_1pin
 module 1 pin (ou trou mecanique de percage)
@@ -27,6 +27,27 @@ socket strip
 0
 36
 36
+BSquared
+BSquaredFP
+
+
+0
+0
+0
+BSquared
+BSquaredFP_6mm
+
+
+0
+0
+0
+BSquared
+BSquaredFP_12mm
+
+
+0
+0
+0
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
